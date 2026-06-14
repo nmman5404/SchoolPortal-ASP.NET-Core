@@ -1,0 +1,53 @@
+@model List<StudentPortal.Mvc.Models.Grade>
+@{ ViewData["Title"] = "Nhập điểm lớp " + ViewBag.ClassName; }
+
+<div class="page-header mb-4">
+    <h2>Nhập điểm: <span class="text-primary">@ViewBag.ClassName</span></h2>
+    <p class="text-muted">Phòng: @ViewBag.Room | Sĩ số: @Model.Count</p>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách lớp</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null) { <div class="alert alert-success">@TempData["SuccessMessage"]</div> }
+@if (TempData["ErrorMessage"] != null) { <div class="alert alert-danger">@TempData["ErrorMessage"]</div> }
+
+<table class="table table-bordered table-striped bg-white shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>Họ và Tên SV</th>
+            <th>Email</th>
+            <th>Điểm hiện tại</th>
+            <th>Ghi chú</th>
+            <th>Cập nhật</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="5" class="text-center py-4">Lớp này chưa có sinh viên đăng ký.</td></tr>
+        }
+        @foreach (var grade in Model)
+        {
+            <tr>
+                <td class="fw-bold">@grade.Student?.User?.FullName</td>
+                <td>@grade.Student?.User?.Email</td>
+                <td>
+                    <span class="badge @(grade.Score >= 5 ? "bg-success" : (grade.Score < 5 ? "bg-danger" : "bg-secondary")) fs-6">
+                        @(grade.Score?.ToString() ?? "Chưa nhập")
+                    </span>
+                </td>
+                <td>@grade.Note</td>
+                <td>
+                    <form asp-action="UpdateSingleGrade" method="post" class="d-flex flex-wrap gap-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="gradeId" value="@grade.Id" />
+                        <input type="hidden" name="classId" value="@grade.CourseClassId" />
+                        <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(grade.RowVersion)" />
+                        <input type="number" step="0.1" max="10" min="0" name="score" class="form-control" value="@grade.Score" style="width: 100px;" />
+                        <input type="text" name="note" class="form-control" value="@grade.Note" maxlength="255" placeholder="Ghi chú" style="min-width: 220px;" />
+                        <button type="submit" class="btn btn-sm btn-primary fw-bold">Lưu</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

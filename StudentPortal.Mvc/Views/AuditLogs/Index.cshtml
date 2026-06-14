@@ -1,0 +1,46 @@
+@model List<StudentPortal.Mvc.Models.AuditLog>
+@{ ViewData["Title"] = "Nhật ký Hệ thống"; }
+
+<div class="page-header mb-4 mt-4">
+    <h2>🛡️ Nhật ký Hệ thống (Audit Logs)</h2>
+    <p class="text-muted">Chỉ Admin mới có quyền truy cập trang này.</p>
+</div>
+
+<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+    <div class="col-md-5">
+        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo Username hoặc Action..." value="@ViewData["Keyword"]" />
+    </div>
+    <div class="col-md-4">
+        <select name="result" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="Success" selected="@(ViewData["Result"]?.ToString() == "Success")">Thành công (Success)</option>
+            <option value="Failed" selected="@(ViewData["Result"]?.ToString() == "Failed")">Thất bại (Failed)</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-dark w-100 fw-bold">Tra cứu Log</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped bg-white shadow-sm">
+    <thead class="table-dark">
+        <tr><th>Thời gian (UTC)</th><th>Người dùng</th><th>Hành động</th><th>Đối tượng (ID)</th><th>Kết quả</th><th>Ghi chú</th></tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0) { <tr><td colspan="6" class="text-center py-4">Không có bản ghi Log nào.</td></tr> }
+        @foreach (var log in Model)
+        {
+            <tr>
+                <td>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                <td class="fw-bold text-primary">@log.UserName</td>
+                <td><span class="badge bg-secondary">@log.Action</span></td>
+                <td>@log.EntityName (@log.EntityId)</td>
+                <td>
+                    @if(log.Result == "Success") { <span class="text-success fw-bold">Success</span> }
+                    else { <span class="text-danger fw-bold">Failed</span> }
+                </td>
+                <td class="small">@log.Note</td>
+            </tr>
+        }
+    </tbody>
+</table>

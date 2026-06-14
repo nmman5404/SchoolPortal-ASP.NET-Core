@@ -1,0 +1,96 @@
+@model StudentPortal.Mvc.ViewModels.CourseClassEditViewModel
+@{ 
+    ViewData["Title"] = Model.Id == 0 ? "Mở Lớp Học Mới" : "Cập nhật Lớp học"; 
+}
+
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-primary text-white fw-bold fs-5 d-flex justify-content-between align-items-center">
+                <span>@(Model.Id == 0 ? "🆕 Mở Lớp Học Mới" : "✏️ Cập nhật thông tin Lớp học")</span>
+            </div>
+            
+            <div class="card-body p-4">
+                <form asp-action="CreateEdit" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <!-- 2 TRƯỜNG ẨN BẮT BUỘC ĐỂ BẢO VỆ CONCURRENCY VÀ XÁC ĐỊNH TRẠNG THÁI -->
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="RowVersion" />
+
+                    <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="SubjectId" class="form-label fw-bold">Chọn môn học</label>
+                            <select asp-for="SubjectId" class="form-select">
+                                <option value="">-- Môn học --</option>
+                                @foreach (var sub in ViewBag.Subjects) { 
+                                    <option value="@sub.Id">@sub.Name</option> 
+                                }
+                            </select>
+                            <span asp-validation-for="SubjectId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SemesterId" class="form-label fw-bold">Chọn học kỳ</label>
+                            <select asp-for="SemesterId" class="form-select">
+                                <option value="">-- Học kỳ --</option>
+                                @foreach (var sem in ViewBag.Semesters) { 
+                                    <option value="@sem.Id">@sem.Name</option> 
+                                }
+                            </select>
+                            <span asp-validation-for="SemesterId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Room" class="form-label fw-bold">Phòng học</label>
+                            <input asp-for="Room" class="form-control" placeholder="VD: A1-101" />
+                            <span asp-validation-for="Room" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Capacity" class="form-label fw-bold">Sĩ số tối đa</label>
+                            <input asp-for="Capacity" class="form-control" type="number" />
+                            <span asp-validation-for="Capacity" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="DayOfWeek" class="form-label fw-bold">Thứ (Lịch học)</label>
+                            <select asp-for="DayOfWeek" class="form-select">
+                                <option value="1">Thứ 2</option>
+                                <option value="2">Thứ 3</option>
+                                <option value="3">Thứ 4</option>
+                                <option value="4">Thứ 5</option>
+                                <option value="5">Thứ 6</option>
+                                <option value="6">Thứ 7</option>
+                            </select>
+                            <span asp-validation-for="DayOfWeek" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="StartPeriod" class="form-label fw-bold">Tiết bắt đầu</label>
+                            <input asp-for="StartPeriod" class="form-control" type="number" />
+                            <span asp-validation-for="StartPeriod" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="EndPeriod" class="form-label fw-bold">Tiết kết thúc</label>
+                            <input asp-for="EndPeriod" class="form-control" type="number" />
+                            <span asp-validation-for="EndPeriod" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary px-4 fw-bold w-100">
+                        @(Model.Id == 0 ? "Xác nhận Mở lớp" : "Lưu Thay Đổi")
+                    </button>
+                    <a asp-action="Index" class="btn btn-light w-100 mt-2">Hủy bỏ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

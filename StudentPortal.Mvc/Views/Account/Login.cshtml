@@ -1,0 +1,53 @@
+@model StudentPortal.Mvc.ViewModels.LoginViewModel
+@{ ViewData["Title"] = "Đăng nhập hệ thống"; }
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">🎓 School Portal</h2>
+                    <p class="text-muted">Đăng nhập để truy cập hệ thống</p>
+                </div>
+
+                <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 fw-bold small"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-bold">Tài khoản Email</label>
+                        <input asp-for="Email" class="form-control form-control-lg" placeholder="user@portal.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label fw-bold">Mật khẩu</label>
+                        <input asp-for="Password" class="form-control form-control-lg" placeholder="******" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label text-muted">Ghi nhớ đăng nhập</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">Đăng Nhập</button>
+                </form>
+
+                <hr class="mt-5" />
+                <div class="text-center small text-muted">
+                    <strong>Demo Accounts:</strong><br />
+                    admin@portal.com / Admin@123<br />
+                    prof@portal.com / Prof@123<br />
+                    worker@portal.com / Worker@123<br />
+                    student@portal.com / Student@123
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

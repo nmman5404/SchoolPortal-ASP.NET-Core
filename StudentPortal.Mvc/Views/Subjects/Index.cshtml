@@ -1,0 +1,117 @@
+@model List<StudentPortal.Mvc.ViewModels.SubjectListItemViewModel>
+@{ ViewData["Title"] = "Quản lý Môn học"; }
+
+<div class="page-header mb-4 mt-4">
+    <h2>Quản lý Môn học</h2>
+    @if (ViewBag.CanCreateSubject == true)
+    {
+        <a asp-action="CreateEdit" class="btn btn-success fw-bold h-100">+ Tạo Môn học mới</a>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null) { <div class="alert alert-success fw-bold">@TempData["SuccessMessage"]</div> }
+@if (TempData["ErrorMessage"] != null) { <div class="alert alert-danger fw-bold">@TempData["ErrorMessage"]</div> }
+
+<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+    <div class="col-md-3">
+        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo Tên môn học..." value="@ViewData["Keyword"]" />
+    </div>
+    <div class="col-md-3">
+        <select name="facultyId" class="form-select">
+            <option value="">-- Tất cả khoa --</option>
+            @foreach (var faculty in ViewBag.Faculties)
+            {
+                <option value="@faculty.Id" selected="@(ViewData["FacultyId"]?.ToString() == faculty.Id.ToString())">@faculty.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="majorId" class="form-select">
+            <option value="">-- Tất cả ngành --</option>
+            @foreach (var major in ViewBag.Majors)
+            {
+                <option value="@major.Id" selected="@(ViewData["MajorId"]?.ToString() == major.Id.ToString())">@major.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="showDeleted" class="form-select fw-bold" onchange="this.form.submit()">
+            <option value="false" selected="@(ViewData["ShowDeleted"]?.ToString() == "False")">Đang hoạt động</option>
+            <option value="true" selected="@(ViewData["ShowDeleted"]?.ToString() == "True")">Thùng rác</option>
+        </select>
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100 fw-bold">Lọc</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped bg-white shadow-sm align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Tên Môn Học</th>
+            <th>Tín Chỉ</th>
+            <th>Thuộc Ngành</th>
+            <th>Thuộc Khoa</th>
+            <th>Môn tiên quyết</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="7" class="text-center py-4">Chưa có dữ liệu Môn học.</td></tr>
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="fw-bold text-primary">@item.Name</td>
+                <td><span class="badge bg-secondary">@item.Credits</span></td>
+                <td>@item.MajorName</td>
+                <td>@item.FacultyName</td>
+                <td>
+                    @if (string.IsNullOrWhiteSpace(item.PrerequisitesText))
+                    {
+                        <span class="text-muted small">Không có</span>
+                    }
+                    else
+                    {
+                        @item.PrerequisitesText
+                    }
+                </td>
+                <td>
+                    @if (item.IsDeleted) { <span class="badge bg-danger">Đã xóa</span> }
+                    else { <span class="badge bg-success">Hoạt động</span> }
+                </td>
+                <td>
+                    @if (item.CanManage)
+                    {
+                        @if (item.IsDeleted)
+                        {
+                            <form asp-action="ToggleDelete" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="restore" value="true" />
+                                <button type="submit" class="btn btn-sm btn-success fw-bold">Khôi phục</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-action="CreateEdit" asp-route-id="@item.Id" class="btn btn-sm btn-primary fw-bold">Sửa</a>
+                            <form asp-action="ToggleDelete" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa mềm môn này?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="restore" value="false" />
+                                <button type="submit" class="btn btn-sm btn-danger fw-bold ms-1">Xóa</button>
+                            </form>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted small fst-italic">Chỉ xem</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

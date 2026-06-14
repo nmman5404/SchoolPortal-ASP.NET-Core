@@ -1,0 +1,55 @@
+@model StudentPortal.Mvc.ViewModels.SalaryBonusCreateViewModel
+@{ ViewData["Title"] = "Cấp Lương / Học Bổng"; }
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-success text-white fw-bold fs-5">💸 Tạo mới Phiếu Lương / Học Bổng</div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="UserId" class="form-label fw-bold">Người nhận (Sinh viên / Giảng viên / Nhân sự)</label>
+                        <select asp-for="UserId" class="form-select">
+                            <option value="">-- Chọn người nhận --</option>
+                            @foreach (var u in ViewBag.Users) { <option value="@u.Id">@u.FullName (@u.Email)</option> }
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="StartDate" class="form-label fw-bold">Từ ngày</label>
+                            <input asp-for="StartDate" class="form-control" type="date" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndDate" class="form-label fw-bold">Đến ngày</label>
+                            <input asp-for="EndDate" class="form-control" type="date" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Amount" class="form-label fw-bold">Số tiền (VNĐ)</label>
+                        <input asp-for="Amount" class="form-control" type="number" />
+                        <span asp-validation-for="Amount" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Note" class="form-label fw-bold">Lý do / Ghi chú</label>
+                        <input asp-for="Note" class="form-control" placeholder="VD: Học bổng xuất sắc HK1, Lương T12..." />
+                        <span asp-validation-for="Note" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success px-4 fw-bold w-100">Xác nhận Cấp phát</button>
+                    <a asp-action="Index" class="btn btn-light w-100 mt-2">Hủy bỏ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

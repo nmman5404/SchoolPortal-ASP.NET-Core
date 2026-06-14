@@ -1,0 +1,106 @@
+@model StudentPortal.Mvc.ViewModels.FacultyCreateEditViewModel
+@{ ViewData["Title"] = Model.Id == 0 ? "Thêm Khoa Mới" : "Cập nhật Khoa"; }
+
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-9">
+        <form asp-action="CreateEdit" method="post" class="card shadow-sm border-0 rounded-4">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            
+            <div class="card-header bg-dark text-white fw-bold fs-5 d-flex justify-content-between align-items-center">
+                <span>@(Model.Id == 0 ? "🏢 Mở Khoa Mới" : "✏️ Cập nhật Thông tin Khoa")</span>
+                <button type="submit" class="btn btn-sm btn-success fw-bold px-4">Lưu Dữ Liệu</button>
+            </div>
+            
+            <div class="card-body p-4">
+                <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+                <h6 class="fw-bold text-primary mb-3">1. Thông tin Khoa</h6>
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label asp-for="Name" class="form-label fw-bold">Tên Khoa</label>
+                        <input asp-for="Name" class="form-control" placeholder="VD: Khoa Kinh tế..." />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="FoundDate" class="form-label fw-bold">Ngày thành lập</label>
+                        <input asp-for="FoundDate" class="form-control" type="date" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="HeadMasterId" class="form-label fw-bold">Bổ nhiệm Trưởng Khoa (Tùy chọn)</label>
+                    <select asp-for="HeadMasterId" class="form-select">
+                        <option value="">-- Chưa bổ nhiệm --</option>
+                        @foreach (var prof in ViewBag.Professors) { <option value="@prof.Id">@prof.FullName</option> }
+                    </select>
+                </div>
+
+                <hr />
+                <h6 class="fw-bold text-success mb-3 d-flex justify-content-between align-items-center">
+                    2. Các Ngành đào tạo thuộc Khoa
+                    <button type="button" class="btn btn-sm btn-outline-success fw-bold" onclick="addMajorRow()">+ Thêm ngành học</button>
+                </h6>
+
+                <table class="table table-bordered bg-light align-middle">
+                    <thead class="table-secondary"><tr><th>Tên ngành học</th><th>Trưởng ngành (Tùy chọn)</th><th style="width: 50px;">Bỏ</th></tr></thead>
+                    <tbody id="majorsBody">
+                        @for (int i = 0; i < Model.Majors.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="Majors[@i].Id" value="@Model.Majors[i].Id" />
+                                    <input type="text" name="Majors[@i].Name" value="@Model.Majors[i].Name" class="form-control" placeholder="Nhập tên ngành..." />
+                                </td>
+                                <td>
+                                    <select name="Majors[@i].HeadMasterId" class="form-select">
+                                        <option value="">-- Chưa bổ nhiệm --</option>
+                                        @foreach (var prof in ViewBag.Professors)
+                                        {
+                                            if (prof.Id == Model.Majors[i].HeadMasterId) { <option value="@prof.Id" selected>@prof.FullName</option> }
+                                            else { <option value="@prof.Id">@prof.FullName</option> }
+                                        }
+                                    </select>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x-lg">X</i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Template HTML ẩn dùng cho Javascript để Copy ra -->
+<template id="majorTemplate">
+    <tr>
+        <td>
+            <input type="hidden" name="Majors[__INDEX__].Id" value="0" />
+            <input type="text" name="Majors[__INDEX__].Name" class="form-control" placeholder="Tên ngành mới..." />
+        </td>
+        <td>
+            <select name="Majors[__INDEX__].HeadMasterId" class="form-select">
+                <option value="">-- Chưa bổ nhiệm --</option>
+                @foreach (var prof in ViewBag.Professors) { <option value="@prof.Id">@prof.FullName</option> }
+            </select>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x-lg">X</i></button>
+        </td>
+    </tr>
+</template>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let majorCount = @Model.Majors.Count;
+        function addMajorRow() {
+            let template = document.getElementById('majorTemplate').innerHTML;
+            let html = template.replace(/__INDEX__/g, majorCount);
+            document.getElementById('majorsBody').insertAdjacentHTML('beforeend', html);
+            majorCount++;
+        }
+    </script>
+}

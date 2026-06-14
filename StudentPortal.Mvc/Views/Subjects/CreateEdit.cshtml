@@ -1,0 +1,137 @@
+@model StudentPortal.Mvc.ViewModels.SubjectCreateEditViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm Môn học" : "Cập nhật Môn học";
+}
+
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-8">
+        <form asp-action="CreateEdit" method="post" class="card shadow-sm border-0 rounded-4" id="subjectForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="card-header bg-warning text-dark fw-bold fs-5 d-flex justify-content-between align-items-center">
+                <span>@(Model.Id == 0 ? "Tạo Môn Học Mới" : "Cập nhật Môn Học")</span>
+                <button type="submit" class="btn btn-sm btn-primary fw-bold px-4">Lưu Dữ Liệu</button>
+            </div>
+
+            <div class="card-body p-4">
+                <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+                <h6 class="fw-bold text-primary mb-3">1. Thông tin môn học</h6>
+                <div class="row mb-3">
+                    <div class="col-md-7">
+                        <label asp-for="Name" class="form-label fw-bold">Tên Môn Học</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-5">
+                        <label asp-for="Credits" class="form-label fw-bold">Số tín chỉ</label>
+                        <input asp-for="Credits" class="form-control" type="number" />
+                        <span asp-validation-for="Credits" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="MajorId" class="form-label fw-bold">Thuộc Ngành</label>
+                    <select asp-for="MajorId" class="form-select">
+                        <option value="">-- Chọn Ngành --</option>
+                        @foreach (var m in ViewBag.Majors)
+                        {
+                            <option value="@m.Id">@m.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="MajorId" class="text-danger small"></span>
+                </div>
+
+                <hr />
+                <h6 class="fw-bold text-success mb-3 d-flex justify-content-between align-items-center">
+                    2. Môn tiên quyết
+                    <button type="button" class="btn btn-sm btn-outline-success fw-bold" onclick="addPrerequisiteRow()">+ Thêm môn tiên quyết</button>
+                </h6>
+
+                <table class="table table-bordered bg-light align-middle">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Môn học bắt buộc học trước</th>
+                            <th style="width: 60px;">Bỏ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prerequisitesBody">
+                        @for (int i = 0; i < Model.Prerequisites.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    <select name="Prerequisites[@i].RequiredSubjectId" class="form-select prerequisite-select">
+                                        <option value="">-- Chọn môn tiên quyết --</option>
+                                        @foreach (var subject in ViewBag.PrerequisiteSubjects)
+                                        {
+                                            if (subject.Id == Model.Prerequisites[i].RequiredSubjectId)
+                                            {
+                                                <option value="@subject.Id" selected>@subject.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@subject.Id">@subject.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="removePrerequisiteRow(this)">X</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </form>
+
+        <a asp-action="Index" class="btn btn-light w-100 mt-2">Hủy bỏ</a>
+    </div>
+</div>
+
+<template id="prerequisiteTemplate">
+    <tr>
+        <td>
+            <select name="Prerequisites[__INDEX__].RequiredSubjectId" class="form-select prerequisite-select">
+                <option value="">-- Chọn môn tiên quyết --</option>
+                @foreach (var subject in ViewBag.PrerequisiteSubjects)
+                {
+                    <option value="@subject.Id">@subject.Name</option>
+                }
+            </select>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-danger" onclick="removePrerequisiteRow(this)">X</button>
+        </td>
+    </tr>
+</template>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let prerequisiteCount = @Model.Prerequisites.Count;
+
+        function addPrerequisiteRow() {
+            const template = document.getElementById('prerequisiteTemplate').innerHTML;
+            const html = template.replace(/__INDEX__/g, prerequisiteCount);
+            document.getElementById('prerequisitesBody').insertAdjacentHTML('beforeend', html);
+            prerequisiteCount++;
+        }
+
+        function removePrerequisiteRow(button) {
+            button.closest('tr').remove();
+            reindexPrerequisites();
+        }
+
+        function reindexPrerequisites() {
+            document.querySelectorAll('#prerequisitesBody tr').forEach((row, index) => {
+                const select = row.querySelector('select');
+                select.name = `Prerequisites[${index}].RequiredSubjectId`;
+            });
+            prerequisiteCount = document.querySelectorAll('#prerequisitesBody tr').length;
+        }
+
+        document.getElementById('subjectForm').addEventListener('submit', reindexPrerequisites);
+    </script>
+}

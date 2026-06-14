@@ -1,0 +1,52 @@
+@model List<StudentPortal.Mvc.ViewModels.ScheduleClassViewModel>
+@{ ViewData["Title"] = "Thời khóa biểu"; }
+
+<div class="page-header mt-4 mb-4">
+    <div>
+        <h2>Thời khóa biểu</h2>
+        <p class="text-muted">@(ViewBag.IsProfessor == true ? "Danh sách lớp bạn đang nhận giảng dạy." : "Danh sách lớp bạn đã đăng ký học.")</p>
+    </div>
+</div>
+
+<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+    <div class="col-md-10">
+        <select name="semesterId" class="form-select">
+            <option value="">-- Tất cả học kỳ --</option>
+            @foreach (var semester in ViewBag.Semesters)
+            {
+                <option value="@semester.Id" selected="@(ViewData["SemesterId"]?.ToString() == semester.Id.ToString())">@semester.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100 fw-bold">Lọc</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped bg-white shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>Học kỳ</th>
+            <th>Môn học</th>
+            <th>Phòng</th>
+            <th>Lịch</th>
+            <th>@(ViewBag.IsProfessor == true ? "Sĩ số" : "Giảng viên")</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="5" class="text-center py-4">Chưa có lịch trong phạm vi đã chọn.</td></tr>
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.SemesterName</td>
+                <td class="fw-bold text-primary">@item.SubjectName</td>
+                <td>@item.Room</td>
+                <td>@item.Schedule</td>
+                <td>@(string.IsNullOrWhiteSpace(item.PeopleText) ? "-" : item.PeopleText)</td>
+            </tr>
+        }
+    </tbody>
+</table>

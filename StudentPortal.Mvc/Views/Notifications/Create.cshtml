@@ -1,0 +1,64 @@
+@model StudentPortal.Mvc.Models.Notification
+@{ ViewData["Title"] = "Gửi Thông Báo"; }
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-danger text-white fw-bold fs-5"><i class="bi bi-megaphone"></i> Soạn Thông Báo Mới</div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-bold">Tiêu đề thông báo</label>
+                        <input asp-for="Title" class="form-control" required />
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Content" class="form-label fw-bold">Nội dung</label>
+                        <textarea asp-for="Content" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <div class="alert alert-secondary p-3">
+                        <h6 class="fw-bold mb-3">Tùy chọn đối tượng nhận (Bỏ trống = Gửi Toàn Trường)</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="small fw-bold">Theo Role</label>
+                                <select asp-for="TargetRole" class="form-select">
+                                    <option value="">-- Bỏ qua --</option>
+                                    <option value="Student">Chỉ Học Sinh</option>
+                                    <option value="Professor">Chỉ Giảng Viên</option>
+                                    <option value="Worker">Chỉ Nhân Viên</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold">Theo Cá Nhân</label>
+                                <select asp-for="TargetUserId" class="form-select">
+                                    <option value="">-- Bỏ qua --</option>
+                                    @foreach(var u in ViewBag.Users) { <option value="@u.Id">@u.FullName (@u.Email)</option> }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold">Theo Khoa</label>
+                                <select asp-for="TargetFacultyId" class="form-select">
+                                    <option value="">-- Bỏ qua --</option>
+                                    @foreach(var f in ViewBag.Faculties) { <option value="@f.Id">@f.Name</option> }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold">Theo Ngành</label>
+                                <select asp-for="TargetMajorId" class="form-select">
+                                    <option value="">-- Bỏ qua --</option>
+                                    @foreach(var m in ViewBag.Majors) { <option value="@m.Id">@m.Name</option> }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 fw-bold">🚀 Phát Thông Báo</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-light w-100 mt-2">Hủy bỏ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

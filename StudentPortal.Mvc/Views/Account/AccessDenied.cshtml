@@ -1,0 +1,10 @@
+@{ ViewData["Title"] = "Từ chối truy cập"; }
+
+<div class="container text-center mt-5 pt-5">
+    <h1 class="display-1 text-danger fw-bold"><i class="bi bi-shield-lock-fill"></i> 403</h1>
+    <h2 class="fw-bold">Truy Cập Bị Từ Chối</h2>
+    <p class="text-muted fs-5 mt-3">
+        Tài khoản của bạn không có đủ thẩm quyền (Role/Policy) để truy cập chức năng này.
+    </p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-4 px-4">Quay Về Trang Chủ</a>
+</div>

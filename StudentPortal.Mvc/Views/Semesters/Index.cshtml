@@ -1,0 +1,68 @@
+@model List<StudentPortal.Mvc.Models.Semester>
+@{ ViewData["Title"] = "Quản lý Học kỳ"; }
+
+<div class="page-header mb-4 mt-4">
+    <h2>📆 Quản lý Học kỳ \& Đợt đăng ký</h2>
+    <p class="text-muted">Admin có quyền Tạo Học kỳ và Bật/Tắt đợt đăng ký môn học của sinh viên.</p>
+</div>
+
+@if (TempData["SuccessMessage"] != null) { <div class="alert alert-success fw-bold">✅ @TempData["SuccessMessage"]</div> }
+
+<div class="row">
+    <!-- Cột Form Thêm Học Kỳ -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white fw-bold">➕ Thêm Học Kỳ Mới</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="fw-bold">Tên Học Kỳ</label>
+                        <input name="Name" class="form-control" placeholder="VD: Học kỳ 1 (2026-2027)" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Ngày bắt đầu</label>
+                        <input type="date" name="StartDate" class="form-control" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="fw-bold">Ngày kết thúc</label>
+                        <input type="date" name="EndDate" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Tạo Học Kỳ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột Danh sách Học Kỳ -->
+    <div class="col-md-8">
+        <table class="table table-bordered bg-white shadow-sm align-middle">
+            <thead class="table-dark">
+                <tr><th>Học kỳ</th><th>Thời gian</th><th>Trạng thái Đăng ký</th><th>Thao tác</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var sem in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@sem.Name</td>
+                        <td>@sem.StartDate.ToString("MM/yyyy") - @sem.EndDate.ToString("MM/yyyy")</td>
+                        <td>
+                            @if(sem.IsRegistrationOpen) { <span class="badge bg-success fs-6">Đang MỞ</span> }
+                            else { <span class="badge bg-danger fs-6">Đã ĐÓNG</span> }
+                        </td>
+                        <td>
+                            <form asp-action="ToggleRegistration" asp-route-id="@sem.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                @if(sem.IsRegistrationOpen) {
+                                    <button type="submit" class="btn btn-sm btn-danger fw-bold">Khóa đăng ký</button>
+                                } else {
+                                    <button type="submit" class="btn btn-sm btn-success fw-bold">Mở đăng ký</button>
+                                }
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

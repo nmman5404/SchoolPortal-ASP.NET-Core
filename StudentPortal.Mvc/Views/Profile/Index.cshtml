@@ -1,0 +1,30 @@
+@model StudentPortal.Mvc.Models.ApplicationUser
+@{ ViewData["Title"] = "Hồ sơ cá nhân"; }
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        @if (TempData["SuccessMessage"] != null) { <div class="alert alert-success fw-bold">✅ @TempData["SuccessMessage"]</div> }
+        @if (TempData["ErrorMessage"] != null) { <div class="alert alert-danger fw-bold">⚠️ @TempData["ErrorMessage"]</div> }
+
+        <div class="card shadow-sm border-0 rounded-4 text-center p-4">
+            <div class="mb-4">
+                @if (!string.IsNullOrEmpty(Model.AvatarUrl)) {
+                    <img src="@Model.AvatarUrl" alt="Avatar" class="rounded-circle shadow" style="width: 150px; height: 150px; object-fit: cover;" />
+                } else {
+                    <div class="rounded-circle bg-secondary d-inline-flex justify-content-center align-items-center text-white shadow" style="width: 150px; height: 150px; font-size: 50px;">
+                        @Model.FullName.Substring(0,1).ToUpper()
+                    </div>
+                }
+            </div>
+            <h4 class="fw-bold text-primary">@Model.FullName</h4>
+            <p class="text-muted">@Model.Email</p>
+            <hr />
+            <form asp-action="UploadAvatar" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2 mt-3">
+                @Html.AntiForgeryToken()
+                <input type="file" name="avatarFile" class="form-control" accept=".jpg,.png,.webp" required />
+                <button type="submit" class="btn btn-success fw-bold">Đổi Ảnh</button>
+            </form>
+            <small class="text-muted mt-2 d-block text-start">* Hỗ trợ .jpg, .png. Tối đa 2MB</small>
+        </div>
+    </div>
+</div>

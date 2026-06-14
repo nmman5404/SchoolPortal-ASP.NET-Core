@@ -1,0 +1,66 @@
+@model List<StudentPortal.Mvc.ViewModels.MajorManagementRowViewModel>
+@{ ViewData["Title"] = "Quản lý Ngành"; }
+
+<div class="page-header mt-4 mb-4">
+    <div>
+        <h2>Quản lý Ngành: @ViewBag.MajorName</h2>
+        <p class="text-muted">Tổng hợp môn học, lớp mở, giảng viên, sinh viên và điểm trong ngành bạn phụ trách.</p>
+    </div>
+</div>
+
+<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+    <div class="col-md-10">
+        <select name="majorId" class="form-select">
+            @foreach (var major in ViewBag.ManagedMajors)
+            {
+                <option value="@major.Id" selected="@(ViewData["MajorId"]?.ToString() == major.Id.ToString())">@major.Name (@major.Faculty?.Name)</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100 fw-bold">Xem</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped bg-white shadow-sm align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Môn học</th>
+            <th>Tín chỉ</th>
+            <th>Số lớp</th>
+            <th>Học kỳ / Phòng / Lịch</th>
+            <th>Giảng viên</th>
+            <th>Sinh viên / Điểm</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="6" class="text-center py-4">Ngành này chưa có môn học.</td></tr>
+        }
+        @foreach (var row in Model)
+        {
+            <tr>
+                <td class="fw-bold text-primary">@row.SubjectName</td>
+                <td>@row.Credits</td>
+                <td><span class="badge bg-secondary">@row.ClassCount</span></td>
+                <td>
+                    @if (row.ClassId.HasValue)
+                    {
+                        <div>@row.SemesterName</div>
+                        <div class="text-muted small">@row.Room - @row.Schedule</div>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Chưa mở lớp</span>
+                    }
+                </td>
+                <td>@(string.IsNullOrWhiteSpace(row.ProfessorsText) ? "-" : row.ProfessorsText)</td>
+                <td>
+                    <div class="fw-bold">@row.StudentCount sinh viên</div>
+                    <div class="small text-muted">@row.StudentsText</div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,91 @@
+@model List<StudentPortal.Mvc.ViewModels.SalaryBonusListItemViewModel>
+@{ ViewData["Title"] = "Quản lý Lương & Học bổng"; }
+
+<div class="page-header mb-4 mt-4">
+    <h2>Quản lý Tài chính (Lương / Học bổng)</h2>
+    <p class="text-muted">Admin xem toàn bộ hệ thống. Các tài khoản khác chỉ xem lịch sử của chính mình.</p>
+</div>
+
+@if (TempData["SuccessMessage"] != null) { <div class="alert alert-success shadow-sm fw-bold">@TempData["SuccessMessage"]</div> }
+
+@if (ViewBag.IsAdmin)
+{
+    <div class="mb-4">
+        <a asp-action="Create" class="btn btn-success fw-bold">Tạo mới Phiếu Lương / Học Bổng</a>
+    </div>
+
+    <form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+        <div class="col-md-3">
+            <select name="roleFilter" class="form-select">
+                <option value="">-- Tất cả role --</option>
+                <option value="Admin" selected="@(ViewData["RoleFilter"]?.ToString() == "Admin")">Admin</option>
+                <option value="Professor" selected="@(ViewData["RoleFilter"]?.ToString() == "Professor")">Giảng viên</option>
+                <option value="Student" selected="@(ViewData["RoleFilter"]?.ToString() == "Student")">Sinh viên</option>
+                <option value="Worker" selected="@(ViewData["RoleFilter"]?.ToString() == "Worker")">Giáo vụ</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="facultyId" class="form-select">
+                <option value="">-- Tất cả khoa --</option>
+                @foreach (var faculty in ViewBag.Faculties)
+                {
+                    <option value="@faculty.Id" selected="@(ViewData["FacultyId"]?.ToString() == faculty.Id.ToString())">@faculty.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select name="majorId" class="form-select">
+                <option value="">-- Tất cả ngành --</option>
+                @foreach (var major in ViewBag.Majors)
+                {
+                    <option value="@major.Id" selected="@(ViewData["MajorId"]?.ToString() == major.Id.ToString())">@major.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100 fw-bold">Lọc</button>
+        </div>
+    </form>
+}
+
+<table class="table table-bordered table-striped bg-white shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            @if (ViewBag.IsAdmin)
+            {
+                <th>Người nhận</th>
+                <th>Role</th>
+                <th>Khoa</th>
+                <th>Ngành</th>
+            }
+            <th>Kỳ áp dụng</th>
+            <th>Số tiền</th>
+            <th>Lý do / Ghi chú</th>
+            <th>Ngày tạo</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="9" class="text-center py-4">Chưa có dữ liệu.</td></tr>
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>#@item.Id</td>
+                @if (ViewBag.IsAdmin)
+                {
+                    <td class="fw-bold text-primary">@item.FullName</td>
+                    <td>@item.RoleName</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.FacultyName) ? "-" : item.FacultyName)</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.MajorName) ? "-" : item.MajorName)</td>
+                }
+                <td>@item.Period</td>
+                <td class="fw-bold text-danger">@item.AmountText</td>
+                <td>@item.Note</td>
+                <td class="text-muted small">@item.CreatedAtText</td>
+            </tr>
+        }
+    </tbody>
+</table>

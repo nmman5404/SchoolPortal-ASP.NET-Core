@@ -1,0 +1,77 @@
+@model List<StudentPortal.Mvc.ViewModels.FacultyListItemViewModel>
+@{ ViewData["Title"] = "Quản lý Khoa"; }
+
+<div class="page-header mb-4 mt-4">
+    <h2>Quản lý Cơ cấu: Các Khoa</h2>
+    @if (ViewBag.IsAdmin == true)
+    {
+        <a asp-action="CreateEdit" class="btn btn-success fw-bold h-100">+ Mở Khoa mới</a>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null) { <div class="alert alert-success fw-bold">@TempData["SuccessMessage"]</div> }
+
+<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+    <div class="col-md-8">
+        <input type="text" name="keyword" class="form-control" placeholder="Gõ tên Khoa..." value="@ViewData["Keyword"]" />
+    </div>
+    <div class="col-md-4">
+        <select name="showDeleted" class="form-select fw-bold" onchange="this.form.submit()" disabled="@(ViewBag.IsAdmin != true)">
+            <option value="false" selected="@(ViewData["ShowDeleted"]?.ToString() == "False")">Các Khoa đang hoạt động</option>
+            <option value="true" selected="@(ViewData["ShowDeleted"]?.ToString() == "True")">Thùng rác</option>
+        </select>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped bg-white shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Tên Khoa</th>
+            <th>Trưởng Khoa</th>
+            <th>Thành lập</th>
+            <th>Tổng Ngành</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="6" class="text-center py-4">Chưa có dữ liệu Khoa.</td></tr>
+        }
+        @foreach (var f in Model)
+        {
+            <tr>
+                <td>@f.Id</td>
+                <td class="fw-bold text-primary">@f.Name</td>
+                <td class="fw-bold text-danger">@f.HeadMasterName</td>
+                <td>@f.FoundDateText</td>
+                <td><span class="badge bg-secondary fs-6">@f.TotalMajors</span></td>
+                <td>
+                    @if (f.IsDeleted && ViewBag.IsAdmin == true)
+                    {
+                        <form asp-action="ToggleDelete" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@f.Id" />
+                            <input type="hidden" name="restore" value="true" />
+                            <button type="submit" class="btn btn-sm btn-success fw-bold">Khôi phục</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-action="CreateEdit" asp-route-id="@f.Id" class="btn btn-sm btn-warning fw-bold">Sửa</a>
+                        @if (ViewBag.IsAdmin == true)
+                        {
+                            <form asp-action="ToggleDelete" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa mềm Khoa này?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@f.Id" />
+                                <input type="hidden" name="restore" value="false" />
+                                <button type="submit" class="btn btn-sm btn-danger fw-bold">Xóa</button>
+                            </form>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

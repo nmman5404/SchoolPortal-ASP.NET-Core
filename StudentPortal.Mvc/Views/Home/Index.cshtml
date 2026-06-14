@@ -1,0 +1,332 @@
+﻿@{ ViewData["Title"] = "Dashboard"; }
+
+<div class="mb-4 mt-3">
+    <h2 class="fw-bold">👋 Xin chào, @User.Identity?.Name!</h2>
+    <p class="text-muted">Chào mừng trở lại Cổng thông tin Quản lý Đào tạo.</p>
+</div>
+
+<!-- ========================================== -->
+<!-- KHU VỰC THÔNG BÁO TỪ BAN GIÁM HIỆU         -->
+<!-- ========================================== -->
+<div class="card shadow-sm border-0 border-start border-4 border-danger mb-4">
+    <div class="card-header bg-white fw-bold text-danger border-0 pt-3 pb-0">
+        <i class="bi bi-bell-fill"></i> THÔNG BÁO MỚI NHẤT TỪ ADMIN
+    </div>
+   <div class="card-body">
+        @if (ViewBag.Notifications != null && ViewBag.Notifications.Count > 0)
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var notif in ViewBag.Notifications)
+                {
+                    <div class="list-group-item px-0 py-2 border-bottom-0">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1 fw-bold text-dark">@notif.Title</h6>
+                                <small class="text-muted">@notif.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                <p class="mb-1 text-secondary small mt-1">@notif.Content</p>
+                            </div>
+                            
+                            <!-- NÚT ẨN/XÓA THÔNG BÁO DÀNH CHO USER -->
+                            <form asp-controller="Home" asp-action="DismissNotification" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@notif.Id" />
+                                <button type="submit" class="btn btn-sm btn-light text-muted border-0 shadow-sm" title="Ẩn thông báo này">
+                                    <i class="bi bi-x-lg">X</i>
+                                </button>
+                            </form>
+                            
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted small mb-0 fst-italic">Hiện không có thông báo nào mới.</p>
+        }
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 1. GÓC NHÌN CỦA QUẢN TRỊ VIÊN (ADMIN)       -->
+<!-- ========================================== -->
+@if (User.IsInRole("Admin"))
+{
+    <h5 class="fw-bold text-danger mt-4 mb-3"><i class="bi bi-shield-lock"></i> KHOANG QUẢN TRỊ HỆ THỐNG</h5>
+    <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
+        
+        <!-- NÚT PHÁT THÔNG BÁO MỚI THÊM -->
+        <div class="col">
+            <a asp-controller="Notifications" asp-action="Create" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-danger border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-danger mb-3">📢</h1>
+                        <h5 class="fw-bold text-dark">Gửi Thông Báo</h5>
+                        <p class="text-muted small">Phát loa theo đối tượng</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a asp-controller="Users" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-primary mb-3">👥</h1>
+                        <h5 class="fw-bold text-dark">Quản lý Tài khoản</h5>
+                        <p class="text-muted small">Sinh viên, Giảng viên, Nhân viên</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="Faculties" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-success mb-3">🏢</h1>
+                        <h5 class="fw-bold text-dark">Khoa \& Ngành</h5>
+                        <p class="text-muted small">Quản lý cơ cấu đào tạo</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="Subjects" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-warning mb-3">📖</h1>
+                        <h5 class="fw-bold text-dark">Môn học</h5>
+                        <p class="text-muted small">Tín chỉ, Tiên quyết</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="Semesters" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-danger mb-3">📆</h1>
+                        <h5 class="fw-bold text-dark">Học kỳ \& Đăng ký</h5>
+                        <p class="text-muted small">Đóng/Mở đợt đăng ký môn</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="CourseClasses" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-info mb-3">🏫</h1>
+                        <h5 class="fw-bold text-dark">Lớp học</h5>
+                        <p class="text-muted small">Thời khóa biểu, Mở lớp</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="SalaryBonuses" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-success mb-3">💰</h1>
+                        <h5 class="fw-bold text-dark">Lương \& Học bổng</h5>
+                        <p class="text-muted small">Cấp phát tài chính</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="AuditLogs" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-secondary mb-3">🛡️</h1>
+                        <h5 class="fw-bold text-dark">Nhật ký Hệ thống</h5>
+                        <p class="text-muted small">Audit Logs</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a href="/health/ready" target="_blank" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 text-dark mb-3">🩺</h1>
+                        <h5 class="fw-bold text-dark">System Health</h5>
+                        <p class="text-muted small">Kiểm tra kết nối Database</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+}
+
+<!-- ========================================== -->
+<!-- 2. GÓC NHÌN CỦA GIẢNG VIÊN                 -->
+<!-- ========================================== -->
+@if (User.IsInRole("Professor"))
+{
+    <h5 class="fw-bold text-warning mt-4 mb-3"><i class="bi bi-briefcase"></i> TRUNG TÂM GIẢNG VIÊN</h5>
+    <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
+        <div class="col">
+            <a asp-controller="Grades" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-warning border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">📝</h1>
+                        <h5 class="fw-bold text-dark">Quản lý Lớp \& Nhập điểm</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="Schedules" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-info border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">🏫</h1>
+                        <h5 class="fw-bold text-dark">Thời khóa biểu</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="SalaryBonuses" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-success border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">💳</h1>
+                        <h5 class="fw-bold text-dark">Lương thưởng</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <!-- Nếu là Trưởng Khoa / Trưởng Ngành sẽ dùng chức năng này -->
+        <div class="col">
+            <a asp-controller="Subjects" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-primary border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">📖</h1>
+                        <h5 class="fw-bold text-dark">Quản lý Môn học</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="CourseClasses" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-info border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">📚</h1>
+                        <h5 class="fw-bold text-dark">Nhận dạy / Mở lớp</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        @if (ViewBag.IsFacultyHeadMaster == true)
+        {
+            <div class="col">
+                <a asp-controller="Faculties" asp-action="Index" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-success border-4">
+                        <div class="card-body text-center p-4">
+                            <h1 class="display-5 mb-3">🏢</h1>
+                            <h5 class="fw-bold text-dark">Quản lý Khoa</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+        @if (ViewBag.IsMajorHeadMaster == true)
+        {
+            <div class="col">
+                <a asp-controller="Majors" asp-action="Index" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-bottom border-primary border-4">
+                        <div class="card-body text-center p-4">
+                            <h1 class="display-5 mb-3">🧭</h1>
+                            <h5 class="fw-bold text-dark">Quản lý Ngành</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+<!-- ========================================== -->
+<!-- 3. GÓC NHÌN CỦA SINH VIÊN                  -->
+<!-- ========================================== -->
+@if (User.IsInRole("Student"))
+{
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h5 class="fw-bold text-primary mb-0"><i class="bi bi-mortarboard"></i> KHÔNG GIAN HỌC TẬP</h5>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        <div class="col">
+            <a asp-controller="Enrollments" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-top border-primary border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">📅</h1>
+                        <h5 class="fw-bold text-dark">Đăng ký Môn học</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="Transcripts" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-top border-info border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">📊</h1>
+                        <h5 class="fw-bold text-dark">Bảng điểm / Lịch học</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="SalaryBonuses" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-top border-warning border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">🏆</h1>
+                        <h5 class="fw-bold text-dark">Học bổng</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="Schedules" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-top border-success border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">🗓️</h1>
+                        <h5 class="fw-bold text-dark">Thời khóa biểu</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+}
+
+<!-- ========================================== -->
+<!-- 4. GÓC NHÌN CỦA NHÂN VIÊN (WORKER)         -->
+<!-- ========================================== -->
+@if (User.IsInRole("Worker"))
+{
+    <h5 class="fw-bold text-secondary mt-4 mb-3"><i class="bi bi-tools"></i> CỔNG NHÂN VIÊN</h5>
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        <div class="col">
+            <a asp-controller="Profile" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-start border-secondary border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">👤</h1>
+                        <h5 class="fw-bold text-dark">Hồ sơ cá nhân</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a asp-controller="SalaryBonuses" asp-action="Index" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 bg-white transition-hover border-start border-success border-4">
+                    <div class="card-body text-center p-4">
+                        <h1 class="display-5 mb-3">💰</h1>
+                        <h5 class="fw-bold text-dark">Bảng Lương</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+}

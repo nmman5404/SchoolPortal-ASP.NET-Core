@@ -1,0 +1,80 @@
+@model List<StudentPortal.Mvc.ViewModels.UserListItemViewModel>
+@{ ViewData["Title"] = "Quản lý Tài khoản"; }
+
+<div class="page-header mb-4 mt-4">
+    <h2>👥 Quản lý Tài Khoản Hệ Thống</h2>
+    <a asp-action="Create" class="btn btn-success fw-bold h-100">+ Tạo tài khoản mới</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null) { <div class="alert alert-success fw-bold">✅ @TempData["SuccessMessage"]</div> }
+
+<!-- BỘ LỌC TÌM KIẾM -->
+<!-- BỘ LỌC TÌM KIẾM AUTO-SUBMIT -->
+<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+    <div class="col-md-5">
+        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo Tên hoặc Email (Nhấn Enter)..." value="@ViewData["Keyword"]" />
+    </div>
+    <div class="col-md-3">
+        <!-- onchange="this.form.submit()" sẽ tự động tìm kiếm khi chọn -->
+        <select name="roleFilter" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Tất cả vai trò --</option>
+            <option value="Student" selected="@(ViewData["RoleFilter"]?.ToString() == "Student")">Học sinh</option>
+            <option value="Professor" selected="@(ViewData["RoleFilter"]?.ToString() == "Professor")">Giảng viên</option>
+            <option value="Worker" selected="@(ViewData["RoleFilter"]?.ToString() == "Worker")">Nhân sự (Worker)</option>
+            <option value="Admin" selected="@(ViewData["RoleFilter"]?.ToString() == "Admin")">Admin</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <select name="showDeleted" class="form-select" onchange="this.form.submit()">
+            <option value="false" selected="@(ViewData["ShowDeleted"]?.ToString() == "False")">Tài khoản Đang hoạt động</option>
+            <option value="true" selected="@(ViewData["ShowDeleted"]?.ToString() == "True")">Thùng rác (Đã xóa / Khóa)</option>
+        </select>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped bg-white shadow-sm">
+    <thead class="table-dark">
+        <tr><th>Họ Tên</th><th>Email</th><th>Vai trò (Role)</th><th>Thông tin đính kèm</th><th>Trạng thái</th><th>Thao tác</th></tr>
+    </thead>
+    <tbody>
+        @if(Model.Count == 0) { <tr><td colspan="6" class="text-center py-4">Không tìm thấy tài khoản.</td></tr> }
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td class="fw-bold">@u.FullName</td>
+                <td>@u.Email</td>
+                <td><span class="badge bg-secondary fs-6">@u.RoleName</span></td>
+                <td class="small text-muted">@u.ProfileInfo</td>
+                <td>
+                    @if(u.IsDeleted) { <span class="badge bg-danger">Đã khóa</span> }
+                    else { <span class="badge bg-success">Hoạt động</span> }
+                </td>
+                <td>
+                    @if (u.IsDeleted)
+                    {
+                        <form asp-action="Restore" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button type="submit" class="btn btn-sm btn-success fw-bold">Khôi phục</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- NÚT SỬA NẰM Ở ĐÂY: Tài khoản đang hoạt động là sửa được -->
+                        <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-primary fw-bold">Sửa</a>
+
+                        <!-- NÚT XÓA: Vẫn giữ nguyên logic chặn Admin tự xóa mình -->
+                        @if (u.Email != User.Identity?.Name)
+                        {
+                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Khóa và đưa tài khoản này vào thùng rác?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger fw-bold ms-1">Xóa</button>
+                            </form>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

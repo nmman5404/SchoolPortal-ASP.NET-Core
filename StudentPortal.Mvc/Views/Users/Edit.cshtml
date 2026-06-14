@@ -1,0 +1,114 @@
+@model StudentPortal.Mvc.ViewModels.UserEditViewModel
+@{ ViewData["Title"] = "Cập nhật Tài khoản"; }
+
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-primary text-white fw-bold fs-5">✏️ Cập nhật Tài Khoản & Hồ Sơ</div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="Role" id="userRole" /> 
+                    
+                    <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label class="form-label fw-bold">Email</label><input asp-for="Email" class="form-control bg-light" readonly /></div>
+                        <div class="col-md-6"><label class="form-label fw-bold">Vai trò (Role)</label><input value="@Model.Role" class="form-control bg-light" readonly /></div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mt-4 mb-3">Thông tin cá nhân</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-12"><label asp-for="FullName" class="form-label fw-bold">Họ và Tên</label><input asp-for="FullName" class="form-control" /></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label asp-for="PID" class="form-label fw-bold">Mã định danh (PID)</label><input asp-for="PID" class="form-control" /></div>
+                        <div class="col-md-6"><label asp-for="Dob" class="form-label fw-bold">Ngày sinh</label><input asp-for="Dob" class="form-control" type="date" /></div>
+                    </div>
+
+                    <hr class="mt-4" />
+                    <h6 class="fw-bold text-success mb-3">Thông tin Hồ sơ (Profile)</h6>
+                    
+                    <div class="row g-3">
+                        @if (Model.Role == "Student" || Model.Role == "Professor")
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="FacultyId" class="form-label fw-bold">Thuộc Khoa</label>
+                                <select asp-for="FacultyId" class="form-select" id="facultySelect">
+                                    <option value="">-- Chọn Khoa --</option>
+                                    @foreach(var f in ViewBag.Faculties) { <option value="@f.Id">@f.Name</option> }
+                                </select>
+                            </div>
+                        }
+                        
+                        @if (Model.Role == "Student")
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="MajorId" class="form-label fw-bold">Thuộc Ngành</label>
+                                <select asp-for="MajorId" class="form-select" id="majorSelect">
+                                    <option value="">-- Chọn Ngành --</option>
+                                    @foreach(var m in ViewBag.Majors) { 
+                                        <!-- CỰC QUAN TRỌNG: Gắn data-faculty để JS dựa vào đây mà lọc -->
+                                        <option value="@m.Id" data-faculty="@m.FacultyId">@m.Name</option> 
+                                    }
+                                </select>
+                            </div>
+                        }
+
+                        @if (Model.Role == "Worker")
+                        {
+                            <div class="col-md-6"><label asp-for="Department" class="form-label fw-bold">Phòng ban</label><input asp-for="Department" class="form-control" /></div>
+                            <div class="col-md-6"><label asp-for="JobDescription" class="form-label fw-bold">Mô tả công việc</label><input asp-for="JobDescription" class="form-control" /></div>
+                        }
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary px-5 fw-bold">Lưu Thông Tin</button>
+                        <a asp-action="Index" class="btn btn-light ms-2">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // KIỂM TRA XEM CÓ TỒN TẠI Ô CHỌN KHOA VÀ NGÀNH KHÔNG (Vì Worker không có ô này)
+        var facSelect = document.getElementById('facultySelect');
+        var majSelect = document.getElementById('majorSelect');
+
+        if (facSelect && majSelect) {
+            // Biến lưu tạm giá trị Ngành đang được chọn (để phục hồi sau khi JS lọc)
+            var currentMajorVal = majSelect.value;
+
+            facSelect.addEventListener('change', function () {
+                var selectedFacId = this.value;
+                var options = majSelect.querySelectorAll('option');
+
+                majSelect.value = ""; // Tạm thời reset
+
+                options.forEach(function (opt) {
+                    if (opt.value === "") { opt.style.display = 'block'; return; }
+                    
+                    if (opt.getAttribute('data-faculty') === selectedFacId) {
+                        opt.style.display = 'block';
+                    } else {
+                        opt.style.display = 'none';
+                    }
+                });
+
+                // Cố gắng phục hồi lại Ngành cũ nếu nó nằm trong Khoa vừa chọn
+                var currentOpt = majSelect.querySelector('option[value="' + currentMajorVal + '"]');
+                if (currentOpt && currentOpt.style.display === 'block') {
+                    majSelect.value = currentMajorVal;
+                }
+            });
+
+            // Kích hoạt ngay khi vừa mở trang Edit
+            facSelect.dispatchEvent(new Event('change'));
+        }
+    </script>
+}
