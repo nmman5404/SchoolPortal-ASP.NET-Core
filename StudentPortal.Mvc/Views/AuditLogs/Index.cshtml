@@ -3,7 +3,6 @@
 
 <div class="page-header mb-4 mt-4">
     <h2>🛡️ Nhật ký Hệ thống (Audit Logs)</h2>
-    <p class="text-muted">Chỉ Admin mới có quyền truy cập trang này.</p>
 </div>
 
 <form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
@@ -13,8 +12,8 @@
     <div class="col-md-4">
         <select name="result" class="form-select" onchange="this.form.submit()">
             <option value="">-- Tất cả trạng thái --</option>
-            <option value="Success" selected="@(ViewData["Result"]?.ToString() == "Success")">Thành công (Success)</option>
-            <option value="Failed" selected="@(ViewData["Result"]?.ToString() == "Failed")">Thất bại (Failed)</option>
+            <option value="Success" selected="@(ViewData["Result"]?.ToString() == "Success")">Thành công</option>
+            <option value="Failed" selected="@(ViewData["Result"]?.ToString() == "Failed")">Thất bại</option>
         </select>
     </div>
     <div class="col-md-3">

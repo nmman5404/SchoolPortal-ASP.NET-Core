@@ -8,7 +8,6 @@
 
 @if (TempData["SuccessMessage"] != null) { <div class="alert alert-success fw-bold">✅ @TempData["SuccessMessage"]</div> }
 
-<!-- BỘ LỌC TÌM KIẾM -->
 <!-- BỘ LỌC TÌM KIẾM AUTO-SUBMIT -->
 <form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
     <div class="col-md-5">
@@ -20,7 +19,7 @@
             <option value="">-- Tất cả vai trò --</option>
             <option value="Student" selected="@(ViewData["RoleFilter"]?.ToString() == "Student")">Học sinh</option>
             <option value="Professor" selected="@(ViewData["RoleFilter"]?.ToString() == "Professor")">Giảng viên</option>
-            <option value="Worker" selected="@(ViewData["RoleFilter"]?.ToString() == "Worker")">Nhân sự (Worker)</option>
+            <option value="Worker" selected="@(ViewData["RoleFilter"]?.ToString() == "Worker")">Nhân sự</option>
             <option value="Admin" selected="@(ViewData["RoleFilter"]?.ToString() == "Admin")">Admin</option>
         </select>
     </div>
@@ -60,10 +59,7 @@
                     }
                     else
                     {
-                        <!-- NÚT SỬA NẰM Ở ĐÂY: Tài khoản đang hoạt động là sửa được -->
                         <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-primary fw-bold">Sửa</a>
-
-                        <!-- NÚT XÓA: Vẫn giữ nguyên logic chặn Admin tự xóa mình -->
                         @if (u.Email != User.Identity?.Name)
                         {
                             <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Khóa và đưa tài khoản này vào thùng rác?');">

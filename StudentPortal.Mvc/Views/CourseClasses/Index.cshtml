@@ -4,7 +4,6 @@
 <div class="page-header mt-4 mb-4">
     <div>
         <h2>Danh sách Lớp học</h2>
-        <p class="text-muted">Admin và trưởng khoa/ngành được mở, sửa, hủy lớp. Giảng viên được nhận dạy các lớp thuộc khoa của mình.</p>
     </div>
     @if (ViewBag.CanCreateClass == true)
     {
@@ -15,7 +14,7 @@
 @if (TempData["SuccessMessage"] != null) { <div class="alert alert-success shadow-sm">@TempData["SuccessMessage"]</div> }
 @if (TempData["ErrorMessage"] != null) { <div class="alert alert-danger shadow-sm">@TempData["ErrorMessage"]</div> }
 
-<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
+<form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border" >
     <div class="col-md-5">
         <select name="facultyId" class="form-select">
             <option value="">-- Tất cả khoa --</option>

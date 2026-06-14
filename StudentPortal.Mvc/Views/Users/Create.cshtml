@@ -19,7 +19,7 @@
                         <div class="col-md-6"><label asp-for="ConfirmPassword" class="form-label fw-bold">Xác nhận MK</label><input asp-for="ConfirmPassword" class="form-control" /></div>
                     </div>
 
-                    <h6 class="fw-bold text-primary mb-3">2. Thông tin cá nhân cơ bản (Dùng chung)</h6>
+                    <h6 class="fw-bold text-primary mb-3">2. Thông tin cá nhân cơ bản</h6>
                     <div class="row mb-3">
                         <div class="col-md-6"><label asp-for="FullName" class="form-label fw-bold">Họ và Tên</label><input asp-for="FullName" class="form-control" /></div>
                         <div class="col-md-6"><label asp-for="Dob" class="form-label fw-bold">Ngày sinh</label><input asp-for="Dob" class="form-control" type="date" /></div>
@@ -27,7 +27,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6"><label asp-for="PID" class="form-label fw-bold">Mã định danh (PID/CCCD)</label><input asp-for="PID" class="form-control" placeholder="Ví dụ: 079200012345" /></div>
                         <div class="col-md-6">
-                            <label asp-for="Role" class="form-label fw-bold">Vai trò (Role)</label>
+                            <label asp-for="Role" class="form-label fw-bold">Vai trò</label>
                             <select asp-for="Role" class="form-select" id="roleSelect">
                                 <option value="">-- Chọn Role --</option>
                                 <option value="Student">Học sinh (Student)</option>
@@ -39,7 +39,7 @@
                     </div>
 
                     <hr />
-                    <div class="alert alert-info">Thông tin Hồ sơ (Profile) sẽ tự động hiển thị dựa theo Vai trò được chọn.</div>
+                    <div class="alert alert-info">Thông tin cá nhân cụ thể sẽ yêu cầu theo từng vai trò.</div>
 
                     <!-- KHU VỰC ẨN HIỆN THEO ROLE -->
                     <div class="p-3 bg-light rounded border mb-4" id="dynamicFields" style="display: none;">
