@@ -144,7 +144,7 @@ public class CourseClassService : ICourseClassService
                     RowVersion = Guid.NewGuid().ToByteArray()
                 });
                 await _classes.SaveChangesAsync();
-                return new CourseClassSaveResult(ServiceResult.Ok("Da mo lop hoc moi thanh cong!"), null);
+                return new CourseClassSaveResult(ServiceResult.Ok("Đã mở lớp học mới thành công!"), null);
             }
 
             var courseClass = await _classes.GetByIdAsync(model.Id);
@@ -164,19 +164,19 @@ public class CourseClassService : ICourseClassService
             _classes.SetOriginalRowVersion(courseClass, originalRowVersion);
 
             await _classes.SaveChangesAsync();
-            return new CourseClassSaveResult(ServiceResult.Ok("Cap nhat lop hoc thanh cong!"), null);
+            return new CourseClassSaveResult(ServiceResult.Ok("Cập nhật lớp học thành công!"), null);
         }
         catch (FormatException)
         {
-            return new CourseClassSaveResult(ServiceResult.Fail("RowVersion khong hop le, vui long tai lai trang."), await GetFormListsAsync(userId, isAdmin));
+            return new CourseClassSaveResult(ServiceResult.Fail("Phiên bản dữ liệu không hợp lệ, vui lòng tải lại trang."), await GetFormListsAsync(userId, isAdmin));
         }
         catch (DbUpdateConcurrencyException)
         {
-            return new CourseClassSaveResult(ServiceResult.Concurrency("LOI DUNG DO: Lop hoc vua bi thay doi boi nguoi khac. Tai lai trang!"), null);
+            return new CourseClassSaveResult(ServiceResult.Concurrency("Lỗi đụng độ: Lớp học vừa bị thay đổi bởi người khác. Vui lòng tải lại trang!"), null);
         }
         catch (Exception ex)
         {
-            return new CourseClassSaveResult(ServiceResult.Fail("Da xay ra loi: " + (ex.InnerException?.Message ?? ex.Message)), await GetFormListsAsync(userId, isAdmin));
+            return new CourseClassSaveResult(ServiceResult.Fail("Đã xảy ra lỗi: " + (ex.InnerException?.Message ?? ex.Message)), await GetFormListsAsync(userId, isAdmin));
         }
     }
 
@@ -191,44 +191,44 @@ public class CourseClassService : ICourseClassService
     public async Task<ServiceResult> AddStudentAsync(int classId, string studentId, bool isAdmin)
     {
         if (!isAdmin) return ServiceResult.Denied();
-        if (string.IsNullOrWhiteSpace(studentId)) return ServiceResult.Fail("Vui long chon sinh vien can them.");
+        if (string.IsNullOrWhiteSpace(studentId)) return ServiceResult.Fail("Vui lòng chọn sinh viên cần thêm.");
 
         await using var transaction = await _classes.BeginTransactionAsync();
         try
         {
             var courseClass = await _classes.Query(includeDeleted: true).Include(c => c.Subject).FirstOrDefaultAsync(c => c.Id == classId);
             if (courseClass == null) return ServiceResult.Missing();
-            if (courseClass.IsDeleted) throw new Exception("Khong the them sinh vien vao lop da bi huy.");
-            if (courseClass.Subject == null || courseClass.Subject.IsDeleted) throw new Exception("Mon hoc cua lop da bi xoa, khong the them sinh vien.");
+            if (courseClass.IsDeleted) throw new Exception("Không thể thêm sinh viên vào lớp đã bị hủy.");
+            if (courseClass.Subject == null || courseClass.Subject.IsDeleted) throw new Exception("Môn học của lớp đã bị xóa, không thể thêm sinh viên.");
 
             var studentProfile = await _users.GetStudentProfileAsync(studentId, includeLookups: false);
-            if (studentProfile == null) throw new Exception("Sinh vien khong ton tai hoac da bi khoa.");
+            if (studentProfile == null) throw new Exception("Sinh viên không tồn tại hoặc đã bị khóa.");
             var studentUser = await _users.FindByIdAsync(studentId);
-            if (studentUser == null || studentUser.IsDeleted) throw new Exception("Sinh vien khong ton tai hoac da bi khoa.");
-            if (studentProfile.MajorId != courseClass.Subject.MajorId) throw new Exception("Sinh vien khong thuoc nganh cua mon hoc nay.");
-            if (await _grades.Query().AnyAsync(g => g.StudentId == studentId && g.CourseClassId == classId)) throw new Exception("Sinh vien da co trong lop nay.");
-            if (courseClass.EnrolledCount >= courseClass.Capacity) throw new Exception("Lop hoc da day slot.");
+            if (studentUser == null || studentUser.IsDeleted) throw new Exception("Sinh viên không tồn tại hoặc đã bị khóa.");
+            if (studentProfile.MajorId != courseClass.Subject.MajorId) throw new Exception("Sinh viên không thuộc ngành của môn học này.");
+            if (await _grades.Query().AnyAsync(g => g.StudentId == studentId && g.CourseClassId == classId)) throw new Exception("Sinh viên đã có trong lớp này.");
+            if (courseClass.EnrolledCount >= courseClass.Capacity) throw new Exception("Lớp học đã đầy chỗ.");
 
             var hasScheduleConflict = await _grades.Query()
                 .Include(g => g.CourseClass)
                 .Where(g => g.StudentId == studentId && g.CourseClass != null && !g.CourseClass.IsDeleted && g.CourseClass.SemesterId == courseClass.SemesterId && g.CourseClass.DayOfWeek == courseClass.DayOfWeek)
                 .AnyAsync(g => !(g.CourseClass!.EndPeriod < courseClass.StartPeriod || g.CourseClass.StartPeriod > courseClass.EndPeriod));
-            if (hasScheduleConflict) throw new Exception("Sinh vien dang co lop khac trung lich.");
+            if (hasScheduleConflict) throw new Exception("Sinh viên đang có lớp khác trùng lịch.");
 
             var missingPrerequisites = await GetMissingPrerequisiteNamesAsync(studentId, courseClass.SubjectId);
-            if (missingPrerequisites.Any()) throw new Exception("Sinh vien chua hoan thanh cac mon hoc tien quyet voi diem tren 5: " + string.Join(", ", missingPrerequisites) + ".");
+            if (missingPrerequisites.Any()) throw new Exception("Sinh viên chưa hoàn thành các môn học tiên quyết với điểm trên 5: " + string.Join(", ", missingPrerequisites) + ".");
 
             _grades.Add(new Grade { StudentId = studentId, CourseClassId = classId, RowVersion = Guid.NewGuid().ToByteArray() });
             courseClass.EnrolledCount += 1;
             courseClass.RowVersion = Guid.NewGuid().ToByteArray();
             await _classes.SaveChangesAsync();
             await transaction.CommitAsync();
-            return ServiceResult.Ok("Da them sinh vien vao lop.");
+            return ServiceResult.Ok("Đã thêm sinh viên vào lớp.");
         }
         catch (DbUpdateConcurrencyException)
         {
             await transaction.RollbackAsync();
-            return ServiceResult.Concurrency("Lop vua duoc thay doi boi nguoi khac. Vui long tai lai trang.");
+            return ServiceResult.Concurrency("Lớp vừa được thay đổi bởi người khác. Vui lòng tải lại trang.");
         }
         catch (Exception ex)
         {
@@ -244,7 +244,7 @@ public class CourseClassService : ICourseClassService
         try
         {
             var grade = await _grades.Query().FirstOrDefaultAsync(g => g.StudentId == studentId && g.CourseClassId == classId);
-            if (grade == null) throw new Exception("Sinh vien khong co trong lop nay.");
+            if (grade == null) throw new Exception("Sinh viên không có trong lớp này.");
             var courseClass = await _classes.GetByIdAsync(classId, includeDeleted: true);
             _grades.Remove(grade);
             if (courseClass != null)
@@ -255,12 +255,12 @@ public class CourseClassService : ICourseClassService
 
             await _classes.SaveChangesAsync();
             await transaction.CommitAsync();
-            return ServiceResult.Ok("Da bo sinh vien khoi lop.");
+            return ServiceResult.Ok("Đã bỏ sinh viên khỏi lớp.");
         }
         catch (DbUpdateConcurrencyException)
         {
             await transaction.RollbackAsync();
-            return ServiceResult.Concurrency("Lop vua duoc thay doi boi nguoi khac. Vui long tai lai trang.");
+            return ServiceResult.Concurrency("Lớp vừa được thay đổi bởi người khác. Vui lòng tải lại trang.");
         }
         catch (Exception ex)
         {
@@ -278,35 +278,35 @@ public class CourseClassService : ICourseClassService
         courseClass.IsDeleted = !restore;
         courseClass.RowVersion = Guid.NewGuid().ToByteArray();
         await _classes.SaveChangesAsync();
-        return ServiceResult.Ok(restore ? "Da khoi phuc Lop hoc!" : "Da dua Lop hoc vao thung rac!");
+        return ServiceResult.Ok(restore ? "Đã khôi phục lớp học!" : "Đã đưa lớp học vào thùng rác!");
     }
 
     public async Task<ServiceResult> AssignProfessorAsync(int classId, string professorId)
     {
         var courseClass = await _classes.Query().Include(c => c.Subject).ThenInclude(s => s!.Major).FirstOrDefaultAsync(c => c.Id == classId);
         if (courseClass == null) return ServiceResult.Missing();
-        if (courseClass.IsDeleted) return ServiceResult.Fail("Khong the nhan day lop da bi xoa.");
-        if (!await CheckCanTeachClassAsync(courseClass.SubjectId, professorId)) return ServiceResult.Fail("Ban chi duoc nhan day cac lop thuoc khoa cua minh.");
-        if (await _classes.QueryClassProfessors().AnyAsync(cp => cp.CourseClassId == classId && cp.ProfessorId == professorId)) return ServiceResult.Fail("Ban da nhan lop nay roi!");
+        if (courseClass.IsDeleted) return ServiceResult.Fail("Không thể nhận dạy lớp đã bị xóa.");
+        if (!await CheckCanTeachClassAsync(courseClass.SubjectId, professorId)) return ServiceResult.Fail("Bạn chỉ được nhận dạy các lớp thuộc khoa của mình.");
+        if (await _classes.QueryClassProfessors().AnyAsync(cp => cp.CourseClassId == classId && cp.ProfessorId == professorId)) return ServiceResult.Fail("Bạn đã nhận lớp này rồi!");
 
         var hasScheduleConflict = await _classes.QueryClassProfessors()
             .Include(cp => cp.CourseClass)
             .Where(cp => cp.ProfessorId == professorId && cp.CourseClass != null && !cp.CourseClass.IsDeleted && cp.CourseClass.SemesterId == courseClass.SemesterId && cp.CourseClass.DayOfWeek == courseClass.DayOfWeek)
             .AnyAsync(cp => !(cp.CourseClass!.EndPeriod < courseClass.StartPeriod || cp.CourseClass.StartPeriod > courseClass.EndPeriod));
-        if (hasScheduleConflict) return ServiceResult.Fail("Ban dang day mot lop khac trung thoi gian voi lop nay.");
+        if (hasScheduleConflict) return ServiceResult.Fail("Bạn đang dạy một lớp khác trùng thời gian với lớp này.");
 
         _classes.AddClassProfessor(new ClassProfessor { CourseClassId = classId, ProfessorId = professorId });
         await _classes.SaveChangesAsync();
-        return ServiceResult.Ok("Ban da nhan giang day lop nay thanh cong!");
+        return ServiceResult.Ok("Bạn đã nhận giảng dạy lớp này thành công!");
     }
 
     public async Task<ServiceResult> UnassignProfessorAsync(int classId, string professorId)
     {
         var assignment = await _classes.QueryClassProfessors().FirstOrDefaultAsync(cp => cp.CourseClassId == classId && cp.ProfessorId == professorId);
-        if (assignment == null) return ServiceResult.Fail("Ban chua nhan day lop nay.");
+        if (assignment == null) return ServiceResult.Fail("Bạn chưa nhận dạy lớp này.");
         _classes.RemoveClassProfessor(assignment);
         await _classes.SaveChangesAsync();
-        return ServiceResult.Ok("Da huy nhan giang day lop nay.");
+        return ServiceResult.Ok("Đã hủy nhận giảng dạy lớp này.");
     }
 
     public async Task<List<object>> SearchAsync(string keyword)
@@ -366,14 +366,14 @@ public class CourseClassService : ICourseClassService
 
     private async Task<string?> ValidateClassModelAsync(CourseClassEditViewModel model)
     {
-        if (model.EndPeriod < model.StartPeriod) return "EndPeriod|Tiet ket thuc phai lon hon hoac bang tiet bat dau.";
+        if (model.EndPeriod < model.StartPeriod) return "EndPeriod|Tiết kết thúc phải lớn hơn hoặc bằng tiết bắt đầu.";
 
         var selectedSubject = await _subjects.Query(includeDeleted: true).AsNoTracking().FirstOrDefaultAsync(s => s.Id == model.SubjectId);
         if (model.SubjectId > 0 && (selectedSubject == null || selectedSubject.IsDeleted))
-            return "SubjectId|Mon hoc da bi xoa hoac khong con ton tai, khong the mo/cap nhat lop.";
+            return "SubjectId|Môn học đã bị xóa hoặc không còn tồn tại, không thể mở/cập nhật lớp.";
 
         if (model.SemesterId > 0 && !await _semesters.Query().AsNoTracking().AnyAsync(s => s.Id == model.SemesterId))
-            return "SemesterId|Hoc ky khong con ton tai, vui long chon lai.";
+            return "SemesterId|Học kỳ không còn tồn tại, vui lòng chọn lại.";
 
         return null;
     }

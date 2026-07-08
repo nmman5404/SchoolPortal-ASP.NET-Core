@@ -62,11 +62,11 @@ public class GradeService : IGradeService
         }
         catch (FormatException)
         {
-            return ServiceResult.Fail("RowVersion khong hop le, vui long tai lai trang.");
+            return ServiceResult.Fail("Phiên bản dữ liệu không hợp lệ, vui lòng tải lại trang.");
         }
         catch (DbUpdateConcurrencyException)
         {
-            return ServiceResult.Concurrency("Loi dung do: Giang vien khac vua sua diem nay!");
+            return ServiceResult.Concurrency("Lỗi đụng độ: Giảng viên khác vừa sửa điểm này!");
         }
     }
 }

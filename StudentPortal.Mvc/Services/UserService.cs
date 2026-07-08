@@ -31,24 +31,24 @@ public class UserService : IUserService
 
         foreach (var user in users)
         {
-            var roleName = (await _users.GetRolesAsync(user)).FirstOrDefault() ?? "No Role";
+            var roleName = (await _users.GetRolesAsync(user)).FirstOrDefault() ?? "Chưa có vai trò";
             if (!string.IsNullOrEmpty(roleFilter) && roleName != roleFilter) continue;
 
             var profileInfo = "N/A";
             if (roleName == "Student")
             {
                 var profile = await _users.GetStudentProfileAsync(user.Id, includeLookups: true);
-                profileInfo = profile?.Major?.Name ?? "Chua co nganh";
+                profileInfo = profile?.Major?.Name ?? "Chưa có ngành";
             }
             else if (roleName == "Professor")
             {
                 var profile = await _users.GetProfessorProfileAsync(user.Id, includeLookups: true);
-                profileInfo = profile?.Faculty?.Name ?? "Chua co khoa";
+                profileInfo = profile?.Faculty?.Name ?? "Chưa có khoa";
             }
             else if (roleName == "Worker")
             {
                 var profile = await _users.GetWorkerProfileAsync(user.Id);
-                profileInfo = profile?.Department ?? "Chua co phong ban";
+                profileInfo = profile?.Department ?? "Chưa có phòng ban";
             }
 
             model.Add(new UserListItemViewModel
@@ -114,10 +114,10 @@ public class UserService : IUserService
         var errors = new List<string>();
 
         if (await _users.QueryUsers(includeDeleted: true).AnyAsync(u => u.PID == model.PID))
-            errors.Add("PID|Ma dinh danh (PID) nay da ton tai trong he thong!");
+            errors.Add("PID|Mã định danh (PID) này đã tồn tại trong hệ thống!");
 
         if (await _users.QueryUsers(includeDeleted: true).AnyAsync(u => u.Email == model.Email))
-            errors.Add("Email|Email nay da duoc su dung!");
+            errors.Add("Email|Email này đã được sử dụng!");
 
         if (errors.Any()) return (ServiceResult.Fail("Validation failed."), errors);
 
@@ -139,9 +139,9 @@ public class UserService : IUserService
         await _users.AddToRoleAsync(user, model.Role);
         SyncProfileForCreate(user.Id, model);
         await _users.SaveChangesAsync();
-        await _auditLogService.LogAsync("CreateUser", "ApplicationUser", user.Id, "Success", $"Tao tai khoan {model.Role} cho email: {model.Email}");
+        await _auditLogService.LogAsync("CreateUser", "ApplicationUser", user.Id, "Success", $"Tạo tài khoản {GetRoleDisplayName(model.Role)} cho email: {model.Email}");
 
-        return (ServiceResult.Ok($"Da tao tai khoan {model.FullName} thanh cong!"), errors);
+        return (ServiceResult.Ok($"Đã tạo tài khoản {model.FullName} thành công!"), errors);
     }
 
     public async Task<ServiceResult> UpdateUserAsync(string id, UserEditViewModel model)
@@ -152,7 +152,7 @@ public class UserService : IUserService
         {
             var major = await _majors.Query().AsNoTracking().FirstOrDefaultAsync(m => m.Id == model.MajorId.Value);
             if (major == null || major.FacultyId != model.FacultyId.Value)
-                return ServiceResult.Fail("MajorId|Loi nghiep vu: Nganh hoc nay khong thuoc Khoa da chon!");
+                return ServiceResult.Fail("MajorId|Lỗi nghiệp vụ: Ngành học này không thuộc Khoa đã chọn!");
         }
 
         var user = await _users.FindByIdAsync(id);
@@ -164,9 +164,9 @@ public class UserService : IUserService
         await _users.UpdateAsync(user);
         await SyncProfileForUpdateAsync(id, model);
         await _users.SaveChangesAsync();
-        await _auditLogService.LogAsync("EditUser", "ApplicationUser", user.Id, "Success", $"Cap nhat ho so cua: {user.Email}");
+        await _auditLogService.LogAsync("EditUser", "ApplicationUser", user.Id, "Success", $"Cập nhật hồ sơ của: {user.Email}");
 
-        return ServiceResult.Ok("Cap nhat tai khoan thanh cong!");
+        return ServiceResult.Ok("Cập nhật tài khoản thành công!");
     }
 
     public async Task<ServiceResult> ToggleDeleteUserAsync(string id, bool restore)
@@ -179,9 +179,9 @@ public class UserService : IUserService
         await _users.UpdateAsync(user);
 
         var action = restore ? "Restore" : "SoftDelete";
-        await _auditLogService.LogAsync(action, "ApplicationUser", id, "Success", restore ? $"Da mo khoa tai khoan: {user.Email}" : $"Da khoa tai khoan: {user.Email}");
+        await _auditLogService.LogAsync(action, "ApplicationUser", id, "Success", restore ? $"Đã mở khóa tài khoản: {user.Email}" : $"Đã khóa tài khoản: {user.Email}");
 
-        return ServiceResult.Ok(restore ? "Da khoi phuc tai khoan thanh cong!" : "Da khoa va dua tai khoan vao thung rac.");
+        return ServiceResult.Ok(restore ? "Đã khôi phục tài khoản thành công!" : "Đã khóa và đưa tài khoản vào thùng rác.");
     }
 
     private void SyncProfileForCreate(string userId, UserCreateViewModel model)
@@ -200,7 +200,7 @@ public class UserService : IUserService
             {
                 UserId = userId,
                 Department = model.Department ?? "N/A",
-                JobDescription = model.JobDescription ?? "Chua co mo ta"
+                JobDescription = model.JobDescription ?? "Chưa có mô tả"
             });
         }
     }
@@ -240,4 +240,13 @@ public class UserService : IUserService
             }
         }
     }
+
+    private static string GetRoleDisplayName(string role) => role switch
+    {
+        "Admin" => "Quản trị viên",
+        "Professor" => "Giảng viên",
+        "Student" => "Học sinh",
+        "Worker" => "Nhân sự",
+        _ => role
+    };
 }

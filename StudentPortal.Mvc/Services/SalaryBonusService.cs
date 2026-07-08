@@ -97,8 +97,8 @@ public class SalaryBonusService : ISalaryBonusService
 
         _bonuses.Add(bonus);
         await _bonuses.SaveChangesAsync();
-        await _auditLogService.LogAsync("CreateSalaryBonus", "SalaryBonus", bonus.Id.ToString(), "Success", $"Cap {model.Amount:N0} cho User {model.UserId}");
+        await _auditLogService.LogAsync("CreateSalaryBonus", "SalaryBonus", bonus.Id.ToString(), "Success", $"Cấp {model.Amount:N0} cho người dùng {model.UserId}");
 
-        return ServiceResult.Ok("Da ghi nhan Luong / Hoc bong thanh cong!");
+        return ServiceResult.Ok("Đã ghi nhận lương / học bổng thành công!");
     }
 }

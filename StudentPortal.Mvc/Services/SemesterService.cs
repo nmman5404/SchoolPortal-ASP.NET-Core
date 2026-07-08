@@ -14,10 +14,10 @@ public class SemesterService : ISemesterService
 
     public async Task<ServiceResult> CreateAsync(string name, DateTime startDate, DateTime endDate)
     {
-        if (string.IsNullOrWhiteSpace(name)) return ServiceResult.Fail("Ten hoc ky khong hop le.");
+        if (string.IsNullOrWhiteSpace(name)) return ServiceResult.Fail("Tên học kỳ không hợp lệ.");
         _semesters.Add(new Semester { Name = name, StartDate = startDate, EndDate = endDate, IsRegistrationOpen = false });
         await _semesters.SaveChangesAsync();
-        return ServiceResult.Ok("Da them Hoc ky moi thanh cong!");
+        return ServiceResult.Ok("Đã thêm học kỳ mới thành công!");
     }
 
     public async Task<ServiceResult> ToggleRegistrationAsync(int id)
@@ -27,6 +27,6 @@ public class SemesterService : ISemesterService
 
         semester.IsRegistrationOpen = !semester.IsRegistrationOpen;
         await _semesters.SaveChangesAsync();
-        return ServiceResult.Ok(semester.IsRegistrationOpen ? $"Da MO dang ky cho {semester.Name}" : $"Da DONG dang ky cho {semester.Name}");
+        return ServiceResult.Ok(semester.IsRegistrationOpen ? $"Đã mở đăng ký cho {semester.Name}" : $"Đã đóng đăng ký cho {semester.Name}");
     }
 }

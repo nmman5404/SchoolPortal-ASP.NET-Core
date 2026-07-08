@@ -49,7 +49,7 @@ public class SubjectsController : Controller
         {
             if (!((IEnumerable<LookupOption>)ViewBag.Majors).Any())
             {
-                TempData["ErrorMessage"] = "Ban khong co quyen tao mon hoc cho nganh nao.";
+                TempData["ErrorMessage"] = "Bạn không có quyền tạo môn học cho ngành nào.";
                 return RedirectToAction(nameof(Index));
             }
 

@@ -110,7 +110,7 @@ public class SubjectService : ISubjectService
     public async Task<SubjectSaveResult> SaveSubjectAsync(SubjectCreateEditViewModel model, string userId, bool isAdmin)
     {
         if (model.Id > 0 && model.Prerequisites.Select(p => p.RequiredSubjectId).Where(id => id > 0).Contains(model.Id))
-            return new SubjectSaveResult(ServiceResult.Fail("Prerequisites|Mon hoc khong the la mon tien quyet cua chinh no."), await GetFormListsAsync(userId, isAdmin, model.Id));
+            return new SubjectSaveResult(ServiceResult.Fail("Prerequisites|Môn học không thể là môn tiên quyết của chính nó."), await GetFormListsAsync(userId, isAdmin, model.Id));
 
         if (!await CheckCanManageSubjectAsync(model.MajorId, userId, isAdmin))
             return new SubjectSaveResult(ServiceResult.Denied(), null);
@@ -119,17 +119,17 @@ public class SubjectService : ISubjectService
         try
         {
             Subject subject;
-            var message = "Da cap nhat mon hoc!";
+            var message = "Đã cập nhật môn học!";
             if (model.Id == 0)
             {
                 subject = new Subject { Name = model.Name, Credits = model.Credits, MajorId = model.MajorId };
                 _subjects.Add(subject);
                 await _subjects.SaveChangesAsync();
-                message = "Da them mon hoc moi!";
+                message = "Đã thêm môn học mới!";
             }
             else
             {
-                subject = await _subjects.GetByIdAsync(model.Id) ?? throw new InvalidOperationException("Khong tim thay mon hoc.");
+                subject = await _subjects.GetByIdAsync(model.Id) ?? throw new InvalidOperationException("Không tìm thấy môn học.");
                 if (!await CheckCanManageSubjectAsync(subject.MajorId, userId, isAdmin))
                     return new SubjectSaveResult(ServiceResult.Denied(), null);
 
@@ -147,7 +147,7 @@ public class SubjectService : ISubjectService
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return new SubjectSaveResult(ServiceResult.Fail("Da xay ra loi: " + (ex.InnerException?.Message ?? ex.Message)), await GetFormListsAsync(userId, isAdmin, model.Id == 0 ? null : model.Id));
+            return new SubjectSaveResult(ServiceResult.Fail("Đã xảy ra lỗi: " + (ex.InnerException?.Message ?? ex.Message)), await GetFormListsAsync(userId, isAdmin, model.Id == 0 ? null : model.Id));
         }
     }
 
@@ -161,12 +161,12 @@ public class SubjectService : ISubjectService
         {
             var dependentSubjects = await _subjects.GetActiveDependentSubjectNamesAsync(subject.Id);
             if (dependentSubjects.Any())
-                return ServiceResult.Fail("Khong the xoa mon hoc nay vi dang la mon tien quyet cua: " + string.Join(", ", dependentSubjects) + ".");
+                return ServiceResult.Fail("Không thể xóa môn học này vì đang là môn tiên quyết của: " + string.Join(", ", dependentSubjects) + ".");
         }
 
         subject.IsDeleted = !restore;
         await _subjects.SaveChangesAsync();
-        return ServiceResult.Ok(restore ? "Da khoi phuc Mon hoc!" : "Da dua Mon hoc vao thung rac!");
+        return ServiceResult.Ok(restore ? "Đã khôi phục môn học!" : "Đã đưa môn học vào thùng rác!");
     }
 
     private IQueryable<Major> GetManageableMajorsQuery(string userId, bool isAdmin)

@@ -16,7 +16,7 @@ public class ApiClassesController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(keyword) || keyword.Length < 3)
         {
-            ModelState.AddModelError("keyword", "Tu khoa tim kiem phai dai it nhat 3 ky tu.");
+            ModelState.AddModelError("keyword", "Từ khóa tìm kiếm phải dài ít nhất 3 ký tự.");
             return ValidationProblem(ModelState);
         }
 
@@ -26,9 +26,9 @@ public class ApiClassesController : ControllerBase
             return NotFound(new ProblemDetails
             {
                 Type = "/problems/class-not-found",
-                Title = "Khong tim thay lop hoc",
+                Title = "Không tìm thấy lớp học",
                 Status = StatusCodes.Status404NotFound,
-                Detail = $"Khong co lop hoc nao khop voi tu khoa '{keyword}'.",
+                Detail = $"Không có lớp học nào khớp với từ khóa '{keyword}'.",
                 Instance = HttpContext.Request.Path,
                 Extensions = { { "errorCode", "CLASS_NOT_FOUND" } }
             });

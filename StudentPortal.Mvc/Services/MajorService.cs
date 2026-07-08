@@ -61,10 +61,10 @@ public class MajorService : IMajorService
                     ClassId = courseClass.Id,
                     SemesterName = courseClass.Semester?.Name ?? "N/A",
                     Room = courseClass.Room,
-                    Schedule = $"Thu {(int)courseClass.DayOfWeek + 1}, Tiet {courseClass.StartPeriod} - {courseClass.EndPeriod}",
+                    Schedule = $"Thứ {(int)courseClass.DayOfWeek + 1}, Tiết {courseClass.StartPeriod} - {courseClass.EndPeriod}",
                     ProfessorsText = string.Join(", ", courseClass.ClassProfessors.Select(cp => cp.Professor?.User?.FullName).Where(n => !string.IsNullOrWhiteSpace(n))),
                     StudentCount = courseClass.Grades.Count,
-                    StudentsText = string.Join("; ", courseClass.Grades.Select(g => $"{g.Student?.User?.FullName}: {(g.Score.HasValue ? g.Score.Value.ToString("0.0") : "Chua diem")}"))
+                    StudentsText = string.Join("; ", courseClass.Grades.Select(g => $"{g.Student?.User?.FullName}: {(g.Score.HasValue ? g.Score.Value.ToString("0.0") : "Chưa có điểm")}"))
                 });
             }
         }

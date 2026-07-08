@@ -34,12 +34,12 @@ public class NotificationService : INotificationService
 
         if (model.TargetFacultyId.HasValue && model.TargetMajorId.HasValue &&
             !await _majors.MajorBelongsToFacultyAsync(model.TargetMajorId.Value, model.TargetFacultyId.Value))
-            return ServiceResult.Fail("TargetMajorId|Nganh nhan thong bao phai thuoc khoa da chon.");
+            return ServiceResult.Fail("TargetMajorId|Ngành nhận thông báo phải thuộc khoa đã chọn.");
 
         model.CreatedAt = DateTime.Now;
         _notifications.Add(model);
         await _notifications.SaveChangesAsync();
-        return ServiceResult.Ok("Da gui thong bao thanh cong!");
+        return ServiceResult.Ok("Đã gửi thông báo thành công!");
     }
 
     public async Task<List<Notification>> GetVisibleNotificationsAsync(ApplicationUser user, IList<string> roles)

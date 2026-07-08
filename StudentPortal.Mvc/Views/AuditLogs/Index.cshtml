@@ -2,12 +2,12 @@
 @{ ViewData["Title"] = "Nhật ký Hệ thống"; }
 
 <div class="page-header mb-4 mt-4">
-    <h2>🛡️ Nhật ký Hệ thống (Audit Logs)</h2>
+    <h2>🛡️ Nhật ký hệ thống</h2>
 </div>
 
 <form method="get" class="row g-2 mb-4 bg-white p-3 shadow-sm rounded border">
     <div class="col-md-5">
-        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo Username hoặc Action..." value="@ViewData["Keyword"]" />
+        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo người dùng hoặc hành động..." value="@ViewData["Keyword"]" />
     </div>
     <div class="col-md-4">
         <select name="result" class="form-select" onchange="this.form.submit()">
@@ -17,7 +17,7 @@
         </select>
     </div>
     <div class="col-md-3">
-        <button type="submit" class="btn btn-dark w-100 fw-bold">Tra cứu Log</button>
+        <button type="submit" class="btn btn-dark w-100 fw-bold">Tra cứu nhật ký</button>
     </div>
 </form>
 
@@ -26,20 +26,44 @@
         <tr><th>Thời gian (UTC)</th><th>Người dùng</th><th>Hành động</th><th>Đối tượng (ID)</th><th>Kết quả</th><th>Ghi chú</th></tr>
     </thead>
     <tbody>
-        @if (Model.Count == 0) { <tr><td colspan="6" class="text-center py-4">Không có bản ghi Log nào.</td></tr> }
+        @if (Model.Count == 0) { <tr><td colspan="6" class="text-center py-4">Không có bản ghi nhật ký nào.</td></tr> }
         @foreach (var log in Model)
         {
             <tr>
                 <td>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
                 <td class="fw-bold text-primary">@log.UserName</td>
-                <td><span class="badge bg-secondary">@log.Action</span></td>
-                <td>@log.EntityName (@log.EntityId)</td>
+                <td><span class="badge bg-secondary">@TranslateAction(log.Action)</span></td>
+                <td>@TranslateEntity(log.EntityName) (@log.EntityId)</td>
                 <td>
-                    @if(log.Result == "Success") { <span class="text-success fw-bold">Success</span> }
-                    else { <span class="text-danger fw-bold">Failed</span> }
+                    @if(log.Result == "Success") { <span class="text-success fw-bold">Thành công</span> }
+                    else { <span class="text-danger fw-bold">Thất bại</span> }
                 </td>
                 <td class="small">@log.Note</td>
             </tr>
         }
     </tbody>
 </table>
+
+@functions {
+    private static string TranslateAction(string action) => action switch
+    {
+        "CreateUser" => "Tạo tài khoản",
+        "EditUser" => "Cập nhật tài khoản",
+        "SoftDelete" => "Xóa mềm",
+        "Restore" => "Khôi phục",
+        "CreateSalaryBonus" => "Tạo phiếu lương / học bổng",
+        "EnrollClass" => "Đăng ký lớp học",
+        "UnenrollClass" => "Hủy đăng ký lớp học",
+        "UploadAvatar" => "Đổi ảnh đại diện",
+        _ => action
+    };
+
+    private static string TranslateEntity(string entityName) => entityName switch
+    {
+        "ApplicationUser" => "Tài khoản",
+        "CourseClass" => "Lớp học",
+        "SalaryBonus" => "Lương / học bổng",
+        "User" => "Người dùng",
+        _ => entityName
+    };
+}

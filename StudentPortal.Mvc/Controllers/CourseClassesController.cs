@@ -50,7 +50,7 @@ public class CourseClassesController : Controller
         {
             if (!((IEnumerable<LookupOption>)ViewBag.Subjects).Any())
             {
-                TempData["ErrorMessage"] = "Ban khong co quyen mo lop cho mon hoc nao.";
+                TempData["ErrorMessage"] = "Bạn không có quyền mở lớp cho môn học nào.";
                 return RedirectToAction(nameof(Index));
             }
 
