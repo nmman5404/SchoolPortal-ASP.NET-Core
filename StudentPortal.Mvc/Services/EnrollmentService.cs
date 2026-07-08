@@ -110,7 +110,11 @@ public class EnrollmentService : IEnrollmentService
 
             var prerequisites = await _context.PrerequisiteSubjects
                 .Where(p => p.SubjectId == courseClass.SubjectId)
-                .Select(p => p.RequiredSubjectId)
+                .Select(p => new
+                {
+                    p.RequiredSubjectId,
+                    RequiredSubjectName = p.RequiredSubject != null ? p.RequiredSubject.Name : "N/A"
+                })
                 .ToListAsync();
 
             if (prerequisites.Any())
@@ -121,9 +125,14 @@ public class EnrollmentService : IEnrollmentService
                     .Select(g => g.CourseClass!.SubjectId)
                     .ToListAsync();
 
-                var missing = prerequisites.Except(passedSubjects).ToList();
+                var missing = prerequisites
+                    .Where(p => !passedSubjects.Contains(p.RequiredSubjectId))
+                    .Select(p => p.RequiredSubjectName)
+                    .Distinct()
+                    .OrderBy(name => name)
+                    .ToList();
                 if (missing.Any())
-                    throw new Exception("Bạn chưa hoàn thành các môn học tiên quyết bắt buộc với điểm trên 5.");
+                    throw new Exception("Bạn chưa hoàn thành các môn học tiên quyết bắt buộc với điểm trên 5: " + string.Join(", ", missing) + ".");
             }
 
             _context.Grades.Add(new Grade

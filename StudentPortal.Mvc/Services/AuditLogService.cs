@@ -1,16 +1,16 @@
-using StudentPortal.Mvc.Data;
 using StudentPortal.Mvc.Models;
+using StudentPortal.Mvc.Repositories;
 
 namespace StudentPortal.Mvc.Services;
 
 public class AuditLogService : IAuditLogService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IAuditLogRepository _auditLogRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuditLogService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
+    public AuditLogService(IAuditLogRepository auditLogRepository, IHttpContextAccessor httpContextAccessor)
     {
-        _context = context;
+        _auditLogRepository = auditLogRepository;
         _httpContextAccessor = httpContextAccessor;
     }
 
@@ -28,7 +28,7 @@ public class AuditLogService : IAuditLogService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.AuditLogs.Add(log);
-        await _context.SaveChangesAsync();
+        _auditLogRepository.Add(log);
+        await _auditLogRepository.SaveChangesAsync();
     }
 }

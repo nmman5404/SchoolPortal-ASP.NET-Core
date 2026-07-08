@@ -12,6 +12,7 @@ public class CourseClassListItemViewModel
     public int EndPeriod { get; set; }
     public int Capacity { get; set; }
     public int EnrolledCount { get; set; }
+    public bool IsFull => EnrolledCount >= Capacity;
     
     // --- THÊM 2 DÒNG NÀY ĐỂ FIX LỖI ---
     public bool IsDeleted { get; set; }

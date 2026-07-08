@@ -1,22 +1,20 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StudentPortal.Mvc.Data;
 using StudentPortal.Mvc.Models;
-using StudentPortal.Mvc.ViewModels;
+using StudentPortal.Mvc.Services;
 
 namespace StudentPortal.Mvc.Controllers;
 
 [Authorize(Roles = "Professor")]
 public class MajorsController : Controller
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IMajorService _majorService;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public MajorsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public MajorsController(IMajorService majorService, UserManager<ApplicationUser> userManager)
     {
-        _context = context;
+        _majorService = majorService;
         _userManager = userManager;
     }
 
@@ -26,67 +24,12 @@ public class MajorsController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
 
-        var managedMajors = await _context.Majors
-            .Include(m => m.Faculty)
-            .AsNoTracking()
-            .Where(m => m.HeadMasterId == user.Id && !m.IsDeleted)
-            .OrderBy(m => m.Name)
-            .ToListAsync();
+        var data = await _majorService.GetManagementAsync(user.Id, majorId);
+        if (data.Result.AccessDenied) return RedirectToAction("AccessDenied", "Account");
 
-        if (!managedMajors.Any()) return RedirectToAction("AccessDenied", "Account");
-
-        var selectedMajorId = majorId.HasValue && managedMajors.Any(m => m.Id == majorId.Value)
-            ? majorId.Value
-            : managedMajors.First().Id;
-
-        ViewBag.ManagedMajors = managedMajors;
-        ViewData["MajorId"] = selectedMajorId;
-        ViewBag.MajorName = managedMajors.First(m => m.Id == selectedMajorId).Name;
-
-        var subjects = await _context.Subjects
-            .Include(s => s.CourseClasses).ThenInclude(c => c.Semester)
-            .Include(s => s.CourseClasses).ThenInclude(c => c.ClassProfessors).ThenInclude(cp => cp.Professor).ThenInclude(p => p!.User)
-            .Include(s => s.CourseClasses).ThenInclude(c => c.Grades).ThenInclude(g => g.Student).ThenInclude(s => s!.User)
-            .AsNoTracking()
-            .Where(s => s.MajorId == selectedMajorId && !s.IsDeleted)
-            .OrderBy(s => s.Name)
-            .ToListAsync();
-
-        var rows = new List<MajorManagementRowViewModel>();
-        foreach (var subject in subjects)
-        {
-            var activeClasses = subject.CourseClasses.Where(c => !c.IsDeleted).OrderBy(c => c.Semester?.StartDate).ThenBy(c => c.DayOfWeek).ToList();
-            if (!activeClasses.Any())
-            {
-                rows.Add(new MajorManagementRowViewModel
-                {
-                    SubjectId = subject.Id,
-                    SubjectName = subject.Name,
-                    Credits = subject.Credits,
-                    ClassCount = 0
-                });
-                continue;
-            }
-
-            foreach (var courseClass in activeClasses)
-            {
-                rows.Add(new MajorManagementRowViewModel
-                {
-                    SubjectId = subject.Id,
-                    SubjectName = subject.Name,
-                    Credits = subject.Credits,
-                    ClassCount = activeClasses.Count,
-                    ClassId = courseClass.Id,
-                    SemesterName = courseClass.Semester?.Name ?? "N/A",
-                    Room = courseClass.Room,
-                    Schedule = $"Thứ {(int)courseClass.DayOfWeek + 1}, Tiết {courseClass.StartPeriod} - {courseClass.EndPeriod}",
-                    ProfessorsText = string.Join(", ", courseClass.ClassProfessors.Select(cp => cp.Professor?.User?.FullName).Where(n => !string.IsNullOrWhiteSpace(n))),
-                    StudentCount = courseClass.Grades.Count,
-                    StudentsText = string.Join("; ", courseClass.Grades.Select(g => $"{g.Student?.User?.FullName}: {(g.Score.HasValue ? g.Score.Value.ToString("0.0") : "Chưa điểm")}"))
-                });
-            }
-        }
-
-        return View(rows);
+        ViewBag.ManagedMajors = data.ManagedMajors;
+        ViewData["MajorId"] = data.SelectedMajorId;
+        ViewBag.MajorName = data.MajorName;
+        return View(data.Rows);
     }
 }

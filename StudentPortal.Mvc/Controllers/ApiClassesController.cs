@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StudentPortal.Mvc.Data;
+using StudentPortal.Mvc.Services;
 
 namespace StudentPortal.Mvc.Controllers;
 
@@ -8,40 +7,28 @@ namespace StudentPortal.Mvc.Controllers;
 [ApiController]
 public class ApiClassesController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ICourseClassService _courseClassService;
 
-    public ApiClassesController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    public ApiClassesController(ICourseClassService courseClassService) => _courseClassService = courseClassService;
 
     [HttpGet("search")]
     public async Task<IActionResult> Search(string? keyword)
     {
-        // 1. Demo trả lỗi ValidationProblemDetails (Mã 400)
         if (string.IsNullOrWhiteSpace(keyword) || keyword.Length < 3)
         {
-            ModelState.AddModelError("keyword", "Từ khóa tìm kiếm phải dài ít nhất 3 ký tự.");
+            ModelState.AddModelError("keyword", "Tu khoa tim kiem phai dai it nhat 3 ky tu.");
             return ValidationProblem(ModelState);
         }
 
-        // 2. Query an toàn bằng LINQ (Chống SQL Injection)
-        var results = await _context.CourseClasses
-            .Include(c => c.Subject)
-            .AsNoTracking()
-            .Where(c => c.Room.Contains(keyword) || (c.Subject != null && c.Subject.Name.Contains(keyword)))
-            .Select(c => new { c.Id, c.Room, Subject = c.Subject!.Name })
-            .ToListAsync();
-
-        // 3. Demo trả lỗi ProblemDetails Not Found (Mã 404)
+        var results = await _courseClassService.SearchAsync(keyword);
         if (!results.Any())
         {
             return NotFound(new ProblemDetails
             {
                 Type = "/problems/class-not-found",
-                Title = "Không tìm thấy lớp học",
+                Title = "Khong tim thay lop hoc",
                 Status = StatusCodes.Status404NotFound,
-                Detail = $"Không có lớp học nào khớp với từ khóa '{keyword}'.",
+                Detail = $"Khong co lop hoc nao khop voi tu khoa '{keyword}'.",
                 Instance = HttpContext.Request.Path,
                 Extensions = { { "errorCode", "CLASS_NOT_FOUND" } }
             });

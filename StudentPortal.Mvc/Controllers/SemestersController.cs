@@ -1,38 +1,26 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StudentPortal.Mvc.Data;
-using StudentPortal.Mvc.Models;
+using StudentPortal.Mvc.Services;
 
 namespace StudentPortal.Mvc.Controllers;
 
-[Authorize(Policy = "RequireAdmin")] // CHỈ ADMIN
+[Authorize(Policy = "RequireAdmin")]
 public class SemestersController : Controller
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ISemesterService _semesterService;
 
-    public SemestersController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    public SemestersController(ISemesterService semesterService) => _semesterService = semesterService;
 
     [HttpGet]
-    public async Task<IActionResult> Index()
-    {
-        var semesters = await _context.Semesters.AsNoTracking().OrderByDescending(s => s.StartDate).ToListAsync();
-        return View(semesters);
-    }
+    public async Task<IActionResult> Index() => View(await _semesterService.GetSemestersAsync());
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(string Name, DateTime StartDate, DateTime EndDate)
     {
-        if (!string.IsNullOrWhiteSpace(Name))
-        {
-            _context.Semesters.Add(new Semester { Name = Name, StartDate = StartDate, EndDate = EndDate, IsRegistrationOpen = false });
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Đã thêm Học kỳ mới thành công!";
-        }
+        var result = await _semesterService.CreateAsync(Name, StartDate, EndDate);
+        if (result.Success) TempData["SuccessMessage"] = result.Message;
+        else TempData["ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -40,13 +28,9 @@ public class SemestersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleRegistration(int id)
     {
-        var semester = await _context.Semesters.FindAsync(id);
-        if (semester != null)
-        {
-            semester.IsRegistrationOpen = !semester.IsRegistrationOpen;
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = semester.IsRegistrationOpen ? $"Đã MỞ đăng ký cho {semester.Name}" : $"Đã ĐÓNG đăng ký cho {semester.Name}";
-        }
+        var result = await _semesterService.ToggleRegistrationAsync(id);
+        if (result.Success) TempData["SuccessMessage"] = result.Message;
+        else TempData["ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Index));
     }
 }

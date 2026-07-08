@@ -1,0 +1,128 @@
+@model StudentPortal.Mvc.ViewModels.CourseClassStudentsViewModel
+@{
+    ViewData["Title"] = "Sinh viên trong lớp";
+}
+
+<div class="page-header mt-4 mb-4">
+    <div>
+        <h2>Sinh viên trong lớp</h2>
+        <p class="text-muted mb-0">@Model.SubjectName - @Model.SemesterName</p>
+    </div>
+    <a asp-action="Index" class="btn btn-light fw-bold h-100">Quay lại</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null) { <div class="alert alert-success shadow-sm">@TempData["SuccessMessage"]</div> }
+@if (TempData["ErrorMessage"] != null) { <div class="alert alert-danger shadow-sm">@TempData["ErrorMessage"]</div> }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="bg-white border rounded shadow-sm p-3 h-100">
+            <div class="text-muted small">Phòng</div>
+            <div class="fw-bold">@Model.Room</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border rounded shadow-sm p-3 h-100">
+            <div class="text-muted small">Lịch học</div>
+            <div class="fw-bold">@Model.Schedule</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border rounded shadow-sm p-3 h-100 @(Model.IsFull ? "border-danger" : "")">
+            <div class="text-muted small">Sĩ số</div>
+            <div class="fw-bold @(Model.IsFull ? "text-danger" : "")">@Model.EnrolledCount / @Model.Capacity</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border rounded shadow-sm p-3 h-100">
+            <div class="text-muted small">Trạng thái</div>
+            @if (Model.IsDeleted)
+            {
+                <span class="badge bg-danger">Đã hủy</span>
+            }
+            else
+            {
+                <span class="badge bg-success">Đang mở</span>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.IsAdmin)
+{
+    <div class="bg-white border rounded shadow-sm p-3 mb-4">
+        <form asp-action="AddStudent" method="post" class="row g-2 align-items-end">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="classId" value="@Model.ClassId" />
+            <div class="col-md-10">
+                <label class="form-label fw-bold">Thêm sinh viên</label>
+                <select name="studentId" class="form-select" disabled="@(Model.IsDeleted || Model.IsFull || Model.CandidateStudents.Count == 0)">
+                    <option value="">-- Chọn sinh viên --</option>
+                    @foreach (var student in Model.CandidateStudents)
+                    {
+                        <option value="@student.StudentId">@student.FullName (@student.Email) @(!string.IsNullOrWhiteSpace(student.PID) ? "- " + student.PID : "")</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 fw-bold" disabled="@(Model.IsDeleted || Model.IsFull || Model.CandidateStudents.Count == 0)">Thêm</button>
+            </div>
+        </form>
+        @if (Model.IsFull)
+        {
+            <div class="text-danger small mt-2">Lớp đã đầy slot.</div>
+        }
+        else if (Model.CandidateStudents.Count == 0)
+        {
+            <div class="text-muted small mt-2">Không còn sinh viên phù hợp để thêm vào lớp này.</div>
+        }
+    </div>
+}
+
+<table class="table table-bordered table-striped bg-white shadow-sm align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>PID</th>
+            <th>Ngành</th>
+            <th>Điểm</th>
+            @if (Model.IsAdmin)
+            {
+                <th style="width: 130px;">Thao tác</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Students.Count == 0)
+        {
+            <tr>
+                <td colspan="@(Model.IsAdmin ? 6 : 5)" class="text-center text-muted py-3">Chưa có sinh viên trong lớp.</td>
+            </tr>
+        }
+        @foreach (var student in Model.Students)
+        {
+            <tr>
+                <td class="fw-bold">@student.FullName</td>
+                <td>@student.Email</td>
+                <td>@(string.IsNullOrWhiteSpace(student.PID) ? "N/A" : student.PID)</td>
+                <td>@student.MajorName</td>
+                <td>@(student.Score.HasValue ? student.Score.Value.ToString("0.0") : "Chưa điểm")</td>
+                @if (Model.IsAdmin)
+                {
+                    var confirmMessage = student.Score.HasValue
+                        ? "Sinh viên đã có điểm. Bạn vẫn muốn bỏ sinh viên khỏi lớp?"
+                        : "Bỏ sinh viên khỏi lớp này?";
+                    <td>
+                        <form asp-action="RemoveStudent" method="post" onsubmit="return confirm('@confirmMessage');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="classId" value="@Model.ClassId" />
+                            <input type="hidden" name="studentId" value="@student.StudentId" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Bỏ</button>
+                        </form>
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

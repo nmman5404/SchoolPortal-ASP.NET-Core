@@ -1,28 +1,21 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using StudentPortal.Mvc.Data;
 using StudentPortal.Mvc.Models;
+using StudentPortal.Mvc.Services;
 
 namespace StudentPortal.Mvc.Controllers;
 
-[Authorize(Policy = "RequireAdmin")] // CHỈ ADMIN
+[Authorize(Policy = "RequireAdmin")]
 public class NotificationsController : Controller
 {
-    private readonly ApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public NotificationsController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    public NotificationsController(INotificationService notificationService) => _notificationService = notificationService;
 
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        ViewBag.Faculties = await _context.Faculties.AsNoTracking().ToListAsync();
-        ViewBag.Majors = await _context.Majors.AsNoTracking().ToListAsync();
-        ViewBag.Users = await _context.Users.AsNoTracking().ToListAsync();
+        await ReloadFormListsAsync();
         return View(new Notification());
     }
 
@@ -30,33 +23,37 @@ public class NotificationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Notification model)
     {
-        model.TargetRole = string.IsNullOrWhiteSpace(model.TargetRole) ? null : model.TargetRole;
-        model.TargetUserId = string.IsNullOrWhiteSpace(model.TargetUserId) ? null : model.TargetUserId;
-
-        if (model.TargetFacultyId.HasValue && model.TargetMajorId.HasValue)
+        if (!ModelState.IsValid)
         {
-            var majorBelongsToFaculty = await _context.Majors
-                .AnyAsync(m => m.Id == model.TargetMajorId.Value && m.FacultyId == model.TargetFacultyId.Value);
-            if (!majorBelongsToFaculty)
-                ModelState.AddModelError(nameof(model.TargetMajorId), "Ngành nhận thông báo phải thuộc khoa đã chọn.");
+            await ReloadFormListsAsync();
+            return View(model);
         }
 
-        // Kiểm tra xem Form có hợp lệ không
-        if (ModelState.IsValid)
+        var result = await _notificationService.CreateAsync(model);
+        if (!result.Success)
         {
-            model.CreatedAt = DateTime.Now;
-            _context.Notifications.Add(model);
-            await _context.SaveChangesAsync();
-            
-            TempData["SuccessMessage"] = "Đã gửi thông báo thành công!";
-            return RedirectToAction("Index", "Home");
+            AddServiceModelError(result.Message);
+            await ReloadFormListsAsync();
+            return View(model);
         }
 
-        // NẾU FORM LỖI: PHẢI LOAD LẠI VIEWBAG TRƯỚC KHI RETURN VIEW (ĐÂY CHÍNH LÀ NGUYÊN NHÂN LỖI SẬP VIEW)
-        ViewBag.Faculties = await _context.Faculties.AsNoTracking().ToListAsync();
-        ViewBag.Majors = await _context.Majors.AsNoTracking().ToListAsync();
-        ViewBag.Users = await _context.Users.AsNoTracking().ToListAsync();
-        
-        return View(model);
+        TempData["SuccessMessage"] = result.Message;
+        return RedirectToAction("Index", "Home");
+    }
+
+    private async Task ReloadFormListsAsync()
+    {
+        var lists = await _notificationService.GetFormListsAsync();
+        ViewBag.Faculties = lists.Faculties;
+        ViewBag.Majors = lists.Majors;
+        ViewBag.Users = lists.Users;
+    }
+
+    private void AddServiceModelError(string? encodedError)
+    {
+        if (string.IsNullOrWhiteSpace(encodedError)) return;
+        var parts = encodedError.Split('|', 2);
+        if (parts.Length == 2) ModelState.AddModelError(parts[0], parts[1]);
+        else ModelState.AddModelError(string.Empty, encodedError);
     }
 }
