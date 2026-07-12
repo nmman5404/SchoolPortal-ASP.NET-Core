@@ -37,11 +37,11 @@ public static class DbInitializer
             var workerUser = await userManager.FindByEmailAsync("worker@portal.com");
 
             // Tạo Khoa và Ngành
-            var faculty = new Faculty { Name = "Khoa Công nghệ Thông tin", HeadMasterId = profUser?.Id, FoundDate = new DateTime(2000, 1, 1) };
+            var faculty = new Faculty { Name = "Khoa Toán - Tin học", HeadMasterId = profUser?.Id, FoundDate = new DateTime(2000, 1, 1) };
             context.Faculties.Add(faculty);
             await context.SaveChangesAsync();
 
-            var major = new Major { Name = "Kỹ thuật Phần mềm", FacultyId = faculty.Id, HeadMasterId = profUser?.Id };
+            var major = new Major { Name = "Khoa học Dữ liệu", FacultyId = faculty.Id, HeadMasterId = profUser?.Id };
             context.Majors.Add(major);
             await context.SaveChangesAsync();
 
@@ -55,7 +55,7 @@ public static class DbInitializer
             }
 
             // Tạo Môn học & Học kỳ
-            var subject = new Subject { Name = "Lập trình Web ASP.NET Core MVC", Credits = 4, MajorId = major.Id };
+            var subject = new Subject { Name = "Lập trình Web ASP.NET", Credits = 4, MajorId = major.Id };
             context.Subjects.Add(subject);
 
             var semester = new Semester { Name = "Học kỳ 1 (2026-2027)", StartDate = DateTime.Now, EndDate = DateTime.Now.AddMonths(4), IsRegistrationOpen = true };
