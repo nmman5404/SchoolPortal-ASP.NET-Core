@@ -37,7 +37,7 @@ Admin là người vận hành cốt lõi, không trực tiếp giảng dạy nh
 
 ---
 
-## **2. CÁC CƠ CHẾ ĐẢM BẢO AN TOÀN VẬN HÀNH **
+## **2. CÁC CƠ CHẾ ĐẢM BẢO AN TOÀN VẬN HÀNH**
 Để các luồng nghiệp vụ trên không bị hỏng hóc trong quá trình chạy thực tế, hệ thống áp dụng các cơ chế ngầm:
 * **Chống đụng độ (RowVersion Concurrency):** Mọi hành động nhạy cảm (Sửa điểm, Đăng ký môn lấy slot) đều được gắn một mã phiên bản. Tránh triệt để lỗi "Last Save Wins" khi có thao tác đồng thời.
 * **Xóa an toàn (Soft Delete):** Mọi thao tác "Xóa" trên giao diện (Xóa User, Hủy lớp, Bỏ môn học) thực chất chỉ là đổi cờ `IsDeleted`. Dữ liệu vẫn được giữ lại nguyên vẹn trong DB để không làm hỏng lịch sử tài chính hay bảng điểm.
